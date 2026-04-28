@@ -1,0 +1,754 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>SVPR - Evaluación</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f4f5f7;
+      margin: 20px;
+      color: #222;
+    }
+
+    .card {
+      background: white;
+      padding: 20px;
+      margin-bottom: 15px;
+      border-radius: 10px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+    }
+
+    input, textarea, select, button {
+      width: 100%;
+      margin-top: 8px;
+      padding: 10px;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+      box-sizing: border-box;
+    }
+
+    textarea {
+      min-height: 120px;
+      resize: vertical;
+    }
+
+    button {
+      background: black;
+      color: white;
+      cursor: pointer;
+    }
+
+    .question {
+      border: 1px solid #ddd;
+      padding: 12px;
+      margin-top: 10px;
+      border-radius: 8px;
+      background: #fafafa;
+    }
+
+    .semaforo {
+      font-size: 28px;
+      font-weight: bold;
+      margin-top: 10px;
+    }
+
+    .rojo { color: #dc2626; }
+    .naranja { color: #f97316; }
+    .amarillo { color: #eab308; }
+    .verde { color: #16a34a; }
+
+    pre {
+      background: #111827;
+      color: #f9fafb;
+      padding: 14px;
+      border-radius: 10px;
+      overflow-x: auto;
+      font-size: 12px;
+    }
+
+    .context-item {
+      border: 1px solid #e5e7eb;
+      background: white;
+      border-radius: 8px;
+      padding: 10px;
+      margin-top: 8px;
+    }
+
+    .context-empty {
+      color: #666;
+      font-size: 14px;
+      font-style: italic;
+    }
+
+    .context-warning {
+      background: #fff7ed;
+      border: 1px solid #fdba74;
+      color: #9a3412;
+      padding: 10px;
+      border-radius: 8px;
+      margin-top: 10px;
+      font-size: 14px;
+      line-height: 1.4;
+    }
+
+    .section-subtitle {
+      margin-top: 0;
+      margin-bottom: 6px;
+    }
+
+    .interview-question {
+      border: 1px solid #d1d5db;
+      background: #ffffff;
+      border-radius: 8px;
+      padding: 12px;
+      margin-top: 10px;
+    }
+
+    .interview-priority {
+      display: inline-block;
+      font-size: 12px;
+      font-weight: bold;
+      border-radius: 999px;
+      padding: 4px 8px;
+      margin-bottom: 8px;
+    }
+
+    .prioridad-alta {
+      background: #fee2e2;
+      color: #991b1b;
+    }
+
+    .prioridad-media {
+      background: #fef3c7;
+      color: #92400e;
+    }
+
+    .interview-help {
+      color: #4b5563;
+      font-size: 14px;
+      margin-top: 6px;
+    }
+
+    .question-unknown {
+      border: 2px solid #f59e0b;
+      background: #fffbeb;
+    }
+
+    .badge-unknown {
+      display: inline-block;
+      font-size: 12px;
+      font-weight: bold;
+      border-radius: 999px;
+      padding: 4px 8px;
+      margin-top: 8px;
+      background: #fef3c7;
+      color: #92400e;
+    }
+
+    .measure-item {
+      border: 1px solid #e5e7eb;
+      background: #f9fafb;
+      border-radius: 8px;
+      padding: 10px;
+      margin-top: 8px;
+    }
+
+    .measure-priority {
+      display: inline-block;
+      font-size: 12px;
+      font-weight: bold;
+      border-radius: 999px;
+      padding: 4px 8px;
+      margin-bottom: 8px;
+    }
+
+    .prioridad-urgente {
+      background: #fee2e2;
+      color: #991b1b;
+    }
+
+    .prioridad-alta {
+      background: #ffedd5;
+      color: #9a3412;
+    }
+
+    .prioridad-media {
+      background: #fef3c7;
+      color: #92400e;
+    }
+
+    .prioridad-baja {
+      background: #dcfce7;
+      color: #166534;
+    }
+  </style>
+</head>
+
+<body>
+
+  <h1>SVPR - Evaluación de riesgo</h1>
+
+  <div class="card">
+    <h2>1. Ingreso</h2>
+
+    <label>N° expediente</label>
+    <input id="expediente">
+
+    <label>DNI víctima</label>
+    <input id="dni">
+
+    <label>DNI victimario (opcional)</label>
+    <input id="aggressorDocument">
+
+    <label>Nombre o apodo del victimario</label>
+    <input id="aggressorReference" placeholder="Obligatorio si no hay DNI del victimario">
+
+    <button type="button" onclick="verContextoPrevio()">Ver contexto previo</button>
+
+    <div id="contextBox" class="card" style="display:none; margin-top:15px; background:#f9fafb;">
+      <h3 class="section-subtitle">Contexto previo</h3>
+
+      <div class="context-warning">
+        <b>Contexto informativo:</b> estos antecedentes se muestran solo como referencia para el operador.
+        <b>No fueron utilizados por el sistema para calcular el riesgo actual.</b>
+      </div>
+
+      <div style="margin-top:14px; margin-bottom:12px;">
+        <b>Contexto previo</b>
+        <div id="relationshipContextSummary" style="margin-top:6px;"></div>
+        <div id="relationshipContextList" style="margin-top:8px;"></div>
+      </div>
+    </div>
+
+    <label>Relato</label>
+    <textarea id="relato"></textarea>
+
+    <button onclick="crearCaso()">Evaluar automáticamente</button>
+
+    <div id="estado"></div>
+    <div id="riesgo" class="semaforo"></div>
+
+    <div id="riesgoMeta" style="display:none; margin-top:10px;">
+      <div>
+        <b>Motivos del riesgo preliminar:</b>
+        <span id="riskReasonsText">-</span>
+      </div>
+      <div style="margin-top:6px;">
+        <b>Categoría dominante:</b>
+        <span id="categoriaDominanteText">-</span>
+      </div>
+    </div>
+
+    <div id="summaryBox" class="card" style="display:none; margin-top:15px; background:#f9fafb;">
+      <h3 class="section-subtitle">Resumen del hecho</h3>
+      <p id="summaryText" style="margin-bottom:0;"></p>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>2. Revisión</h2>
+
+    <div id="preguntas"></div>
+
+    <div id="entrevistaBox" class="card" style="display:none; margin-top:15px; background:#f9fafb;">
+      <h3 class="section-subtitle">Preguntas sugeridas para entrevista</h3>
+      <div id="preguntasEntrevista"></div>
+    </div>
+
+    <button onclick="guardar()">Guardar revisión</button>
+
+    <div id="resultadoVisual" class="card" style="display:none;">
+      <h2>Resultado final</h2>
+
+      <div id="riesgoFinal" class="semaforo"></div>
+
+      <div style="margin-top:10px;">
+        <b>Score:</b> <span id="scoreFinal"></span>
+      </div>
+
+      <div>
+        <b>Estado del caso:</b> <span id="estadoCaso"></span>
+      </div>
+
+      <div style="margin-top:10px;">
+        <b>Motivos del riesgo:</b>
+        <div id="riskReasonsFinal" style="margin-top:6px;"></div>
+      </div>
+
+      <div id="medidasSugeridasBox" style="display:none; margin-top:14px;">
+        <b>Medidas de protección sugeridas:</b>
+        <div id="medidasSugeridasFinal" style="margin-top:6px;"></div>
+      </div>
+
+      <button onclick="toggleDebug()" style="margin-top:15px; background:#374151;">
+        Ver detalle técnico
+      </button>
+    </div>
+
+    <pre id="resultado" style="display:none;"></pre>
+
+    <div style="margin-top:10px;">
+      <div style="background:#eee; height:10px; border-radius:5px;">
+        <div id="barraScore" style="height:10px; border-radius:5px; width:0%;"></div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const API = "http://127.0.0.1:8000";
+    let assessmentId = null;
+    let currentCaseId = null;
+
+    async function crearCaso() {
+      const body = {
+        victim_document: document.getElementById("dni").value,
+        aggressor_document: emptyToNull(document.getElementById("aggressorDocument").value),
+        aggressor_reference: emptyToNull(document.getElementById("aggressorReference").value),
+        incident_external_id: document.getElementById("expediente").value,
+        narrative: document.getElementById("relato").value
+      };
+
+      const estado = document.getElementById("estado");
+      estado.innerText = "Procesando...";
+
+      try {
+        const res = await fetch(API + "/crear-caso-desde-relato", {
+          method: "POST",
+          headers: {"Content-Type": "application/json"},
+          body: JSON.stringify(body)
+        });
+
+        const data = await res.json();
+
+        if (!data.ok) {
+          estado.innerText = data.error || data.error_type || "Error";
+          return;
+        }
+
+        assessmentId = data.assessment_id;
+        currentCaseId = data.case_id;
+        estado.innerText = "Evaluación creada";
+
+        mostrarSemaforoPreliminar(data.risk_level_preliminar);
+
+        // Mostrar motivos y categoría dominante
+        document.getElementById("riesgoMeta").style.display = "block";
+        document.getElementById("riskReasonsText").innerText =
+          (data.risk_reasons_preliminar && data.risk_reasons_preliminar.length)
+            ? data.risk_reasons_preliminar.join(" | ")
+            : "-";
+
+        document.getElementById("categoriaDominanteText").innerText =
+          mapCategoria(data.categoria_dominante_preliminar);
+
+        mostrarSemaforoPreliminar(data.risk_level_preliminar);
+
+        if (data.summary_ai) {
+          document.getElementById("summaryBox").style.display = "block";
+          document.getElementById("summaryText").innerText = data.summary_ai;
+        }
+
+        await cargarRespuestas();
+        await cargarPreguntasEntrevista();
+      } catch (err) {
+        estado.innerText = "Error: " + err.message;
+      }
+    }
+
+    async function cargarContexto(excludeCaseId = null) {
+      const victimDocument = document.getElementById("dni").value;
+      const aggressorDocument = emptyToNull(document.getElementById("aggressorDocument").value);
+      const aggressorReference = emptyToNull(document.getElementById("aggressorReference").value);
+
+      try {
+        const res = await fetch(API + "/obtener-contexto", {
+          method: "POST",
+          headers: {"Content-Type": "application/json"},
+          body: JSON.stringify({
+            victim_document: victimDocument,
+            aggressor_document: aggressorDocument,
+            aggressor_reference: aggressorReference,
+            exclude_case_id: excludeCaseId
+          })
+        });
+
+        const data = await res.json();
+
+        if (!data.ok) return;
+
+        document.getElementById("contextBox").style.display = "block";
+
+        const relationshipSummary = document.getElementById("relationshipContextSummary");
+        const relationshipList = document.getElementById("relationshipContextList");
+
+        relationshipSummary.innerHTML = `
+          Incidentes previos de esta relación: <b>${data.relationship_context.count_incidents}</b><br>
+          Último riesgo de esta relación: <b>${data.relationship_context.latest_risk_level || "-"}</b>
+        `;
+
+        relationshipList.innerHTML = "";
+
+        if (!data.relationship_context.incidents.length) {
+          relationshipList.innerHTML = `<div class="context-empty">Sin antecedentes previos para esta relación.</div>`;
+        } else {
+          data.relationship_context.incidents.forEach(item => {
+            const div = document.createElement("div");
+            div.className = "context-item";
+            div.innerHTML = `
+              <div><b>Expediente:</b> ${item.incident_external_id || "-"}</div>
+              <div><b>Fecha:</b> ${formatDateOnly(item.created_at)}</div>
+              <div><b>Riesgo:</b> ${item.current_risk_level || "-"}</div>
+              <div><b>Resumen:</b> ${item.summary_ai || "-"}</div>
+            `;
+            relationshipList.appendChild(div);
+          });
+        }
+
+      } catch (err) {
+        console.error("Error al cargar contexto:", err);
+      }
+    }
+
+    function mostrarSemaforoPreliminar(riesgo) {
+      const riesgoDiv = document.getElementById("riesgo");
+      riesgoDiv.innerHTML = "";
+
+      if (riesgo === "alto") {
+        riesgoDiv.innerHTML = "🟠 ALTO";
+        riesgoDiv.className = "semaforo naranja";
+      } else if (riesgo === "moderado") {
+        riesgoDiv.innerHTML = "🟡 MODERADO";
+        riesgoDiv.className = "semaforo amarillo";
+      } else {
+        riesgoDiv.innerHTML = "🟢 BAJO";
+        riesgoDiv.className = "semaforo verde";
+      }
+    }
+
+    async function cargarRespuestas() {
+      const preguntas = document.getElementById("preguntas");
+      preguntas.innerHTML = "<p>Cargando respuestas...</p>";
+
+      try {
+        const res = await fetch(`${API}/evaluacion/${assessmentId}/respuestas`);
+        const data = await res.json();
+
+        if (!data.ok) {
+          preguntas.innerHTML = `<p style="color:red;">${data.error || data.error_type || "Error al cargar respuestas"}</p>`;
+          return;
+        }
+
+        preguntas.innerHTML = "";
+
+        for (const item of data.answers || []) {
+          const div = document.createElement("div");
+
+          // 🔥 ESTA ES LA LÍNEA QUE TE FALTABA
+          const valorInicial = item.final_value && item.final_value !== ""
+            ? item.final_value
+            : item.ai_suggested_value;
+
+          div.className = valorInicial === "unknown"
+            ? "question question-unknown"
+            : "question";
+
+          div.dataset.id = item.answer_id;
+
+          div.innerHTML = `
+            <strong>${item.question_text}</strong>
+            <p><b>IA:</b> ${mapValor(item.ai_suggested_value)}</p>
+            <p><b>Justificación:</b> ${item.ai_justification_text || "-"}</p>
+
+            ${valorInicial === "unknown"
+              ? '<div class="badge-unknown">Requiere indagación en entrevista</div>'
+              : ''}
+
+            <label>Valor final</label>
+            <select class="valor">
+              <option value="true" ${valorInicial === "true" ? "selected" : ""}>Sí</option>
+              <option value="false" ${valorInicial === "false" ? "selected" : ""}>No</option>
+              <option value="unknown" ${valorInicial === "unknown" ? "selected" : ""}>No se sabe</option>
+            </select>
+
+            <input class="comentario" placeholder="Comentario" value="${item.comments || ""}">
+          `;
+
+          // Evento para cambio en tiempo real
+          const select = div.querySelector(".valor");
+          select.addEventListener("change", () => actualizarEstiloPregunta(div));
+
+          // 🔥 Esto aplica el color al cargar
+          actualizarEstiloPregunta(div);
+
+          preguntas.appendChild(div);
+        }
+      } catch (err) {
+        preguntas.innerHTML = `<p style="color:red;">Error: ${err.message}</p>`;
+      }
+    }
+    
+
+    async function cargarPreguntasEntrevista() {
+      const box = document.getElementById("entrevistaBox");
+      const container = document.getElementById("preguntasEntrevista");
+
+      box.style.display = "none";
+      container.innerHTML = "";
+
+      if (!assessmentId) return;
+
+      try {
+        const res = await fetch(`${API}/evaluacion/${assessmentId}/preguntas-entrevista`);
+        const data = await res.json();
+
+        if (!data.ok) {
+          container.innerHTML = `<p style="color:red;">${data.error || data.error_type || "Error al cargar preguntas de entrevista"}</p>`;
+          box.style.display = "block";
+          return;
+        }
+
+        if (!data.preguntas || data.preguntas.length === 0) {
+          return;
+        }
+
+        box.style.display = "block";
+
+        for (const item of data.preguntas) {
+          const div = document.createElement("div");
+          div.className = "interview-question";
+
+          const prioridadClass =
+            item.prioridad === "alta" ? "prioridad-alta" : "prioridad-media";
+
+          const prioridadTexto =
+            item.prioridad === "alta" ? "Prioridad alta" : "Prioridad media";
+
+          div.innerHTML = `
+            <div class="interview-priority ${prioridadClass}">${prioridadTexto}</div>
+            <div><strong>${item.pregunta}</strong></div>
+            <div class="interview-help">${item.ayuda || ""}</div>
+          `;
+
+          container.appendChild(div);
+        }
+      } catch (err) {
+        container.innerHTML = `<p style="color:red;">Error: ${err.message}</p>`;
+        box.style.display = "block";
+      }
+    }
+
+    async function cargarMedidasSugeridas() {
+      const box = document.getElementById("medidasSugeridasBox");
+      const container = document.getElementById("medidasSugeridasFinal");
+
+      box.style.display = "none";
+      container.innerHTML = "";
+
+      if (!assessmentId) return;
+
+      try {
+        const res = await fetch(`${API}/evaluacion/${assessmentId}/medidas-sugeridas`);
+        const data = await res.json();
+
+        if (!data.ok) {
+          container.innerHTML = `<p style="color:red;">${data.error || "Error al cargar medidas sugeridas"}</p>`;
+          box.style.display = "block";
+          return;
+        }
+
+        if (!data.medidas || data.medidas.length === 0) {
+          return;
+        }
+
+        box.style.display = "block";
+
+        for (const item of data.medidas) {
+          const div = document.createElement("div");
+          div.className = "measure-item";
+
+          const prioridadClass = `prioridad-${item.prioridad || "media"}`;
+
+          div.innerHTML = `
+            <div class="measure-priority ${prioridadClass}">
+              ${(item.prioridad || "media").toUpperCase()}
+            </div>
+            <div><strong>${item.medida}</strong></div>
+            <div style="margin-top:4px; color:#4b5563;">
+              <b>Categoría:</b> ${item.categoria || "-"}
+            </div>
+            <div style="margin-top:6px;">
+              ${item.justificacion || "-"}
+            </div>
+          `;
+
+          container.appendChild(div);
+        }
+      } catch (err) {
+        container.innerHTML = `<p style="color:red;">Error: ${err.message}</p>`;
+        box.style.display = "block";
+      }
+    }
+
+    async function guardar() {
+      const items = [];
+
+      document.querySelectorAll(".question").forEach(q => {
+        items.push({
+          answer_id: q.dataset.id,
+          final_value: q.querySelector(".valor").value,
+          comments: q.querySelector(".comentario").value
+        });
+      });
+
+      const res = await fetch(API + "/revisar-respuestas-lote", {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({
+          assessment_id: assessmentId,
+          answers: items
+        })
+      });
+
+      const data = await res.json();
+
+      if (data.ok) {
+        alert("Guardado");
+        await recalcularEvaluacion();
+        await cargarPreguntasEntrevista();
+        await cargarMedidasSugeridas();
+      } else {
+        alert(data.error || data.error_type || "Error al guardar");
+      }
+
+    }
+
+    async function recalcularEvaluacion() {
+      const res = await fetch(API + "/recalcular-evaluacion", {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({ assessment_id: assessmentId })
+      });
+
+      const data = await res.json();
+
+      if (!data.ok) {
+        alert("Error: " + (data.error || data.error_type));
+        return;
+      }
+
+      document.getElementById("resultadoVisual").style.display = "block";
+      document.getElementById("scoreFinal").innerText = data.score_total;
+      document.getElementById("estadoCaso").innerText = data.case_status;
+
+      // Motivos del riesgo final
+      const motivosFinal = document.getElementById("riskReasonsFinal");
+
+      if (data.risk_reasons && data.risk_reasons.length) {
+        motivosFinal.innerHTML = data.risk_reasons
+          .map(m => `• ${m}`)
+          .join("<br>");
+      } else {
+        motivosFinal.innerText = "-";
+      }
+
+      const riesgoDiv = document.getElementById("riesgoFinal");
+
+      if (data.risk_level === "alto") {
+        riesgoDiv.innerHTML = "🟠 ALTO";
+        riesgoDiv.className = "semaforo naranja";
+      } else if (data.risk_level === "moderado") {
+        riesgoDiv.innerHTML = "🟡 MODERADO";
+        riesgoDiv.className = "semaforo amarillo";
+      } else {
+        riesgoDiv.innerHTML = "🟢 BAJO";
+        riesgoDiv.className = "semaforo verde";
+      }
+
+      const porcentaje = Math.min((data.score_total || 0) * 10, 100);
+      const barra = document.getElementById("barraScore");
+
+      barra.style.width = porcentaje + "%";
+
+      if (data.risk_level === "alto") {
+        barra.style.background = "#f97316";
+      } else if (data.risk_level === "moderado") {
+        barra.style.background = "#eab308";
+      } else {
+        barra.style.background = "#16a34a";
+      }
+
+      document.getElementById("resultado").textContent =
+        JSON.stringify(data, null, 2);
+    }
+
+    function toggleDebug() {
+      const el = document.getElementById("resultado");
+      el.style.display = el.style.display === "none" ? "block" : "none";
+    }
+
+    async function verContextoPrevio() {
+      const victimDocument = document.getElementById("dni").value.trim();
+      const aggressorDocument = emptyToNull(document.getElementById("aggressorDocument").value);
+      const aggressorReference = emptyToNull(document.getElementById("aggressorReference").value);
+
+      const estado = document.getElementById("estado");
+
+      if (!victimDocument) {
+        estado.innerText = "Ingresá el DNI de la víctima.";
+        return;
+      }
+
+      if (!aggressorDocument && !aggressorReference) {
+        estado.innerText = "Ingresá DNI del victimario o nombre/apodo.";
+        return;
+      }
+
+      estado.innerText = "Buscando contexto previo...";
+
+      try {
+        await cargarContexto(currentCaseId);
+        estado.innerText = "Contexto cargado";
+      } catch (err) {
+        estado.innerText = "Error al cargar contexto: " + err.message;
+      }
+    }
+
+    function formatDateOnly(value) {
+      if (!value) return "-";
+      const d = new Date(value);
+      return d.toLocaleDateString("es-AR");
+    }
+
+    function emptyToNull(v) {
+      return v && v.trim() !== "" ? v : null;
+    }
+
+    function mapValor(v) {
+      if (v === "true") return "Sí";
+      if (v === "false") return "No";
+      if (v === "unknown") return "No se sabe";
+      return "-";
+    }
+
+    function actualizarEstiloPregunta(div) {
+      const valor = div.querySelector(".valor").value;
+      if (valor === "unknown") {
+        div.classList.add("question-unknown");
+      } else {
+        div.classList.remove("question-unknown");
+      }
+    }
+
+    function mapCategoria(c) {
+      if (c === "hecho") return "Hecho actual";
+      if (c === "historial") return "Historial";
+      if (c === "dinamica") return "Dinámica";
+      if (c === "vulnerabilidad") return "Vulnerabilidad";
+      if (c === "contexto_juridico") return "Contexto jurídico";
+      return c || "-";
+    }
+  </script>
+
+</body>
+</html>
