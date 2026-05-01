@@ -720,7 +720,7 @@
         <div id="estado"></div>
         <div class="summary-area" style="margin-top:18px;"><div><div id="summaryBox" class="card" style="display:none; margin-top:0; background:#f9fafb; box-shadow:none;"><h3 class="section-subtitle">Resumen del hecho</h3><p id="summaryText" style="margin-bottom:0;"></p></div></div><div><div class="metric-card"><small>Riesgo preliminar</small><div id="riesgo" class="semaforo">-</div></div><div id="riesgoMeta" style="display:none; margin-top:12px;"><div><b>Motivos:</b> <span id="riskReasonsText">-</span></div><div style="margin-top:8px;"><b>Categoría dominante:</b> <span id="categoriaDominanteText">-</span></div></div></div></div>
       </section>
-      <section class="card">
+      <section class="card" id="revisionSection">
         <div class="card-header">
           <div class="collapsible-header">
             <div>
@@ -736,25 +736,26 @@
         <div id="entrevistaBox" class="card" style="display:none; margin-top:18px; background:#f9fafb; box-shadow:none;"><h3 class="section-subtitle">Preguntas sugeridas para entrevista</h3><div id="preguntasEntrevista"></div></div>
         <div class="button-row"><button onclick="guardar()">Guardar revisión</button></div>
         <div id="guardarEstado" class="save-status" aria-live="polite"></div>
-        <div id="resultadoVisual" class="card" style="display:none; margin-top:22px;"><h2>Resultado final</h2><div class="risk-panel"><div class="metric-card"><small>Nivel de riesgo</small><div id="riesgoFinal" class="semaforo">-</div></div><div class="metric-card"><small>Score</small><strong id="scoreFinal">-</strong></div><div class="metric-card"><small>Estado del caso</small><strong id="estadoCaso">-</strong></div></div><div style="margin-top:18px;"><b>Motivos del riesgo</b><div id="riskReasonsFinal" style="margin-top:8px;"></div></div><div id="medidasSugeridasBox" style="display:none; margin-top:18px;"><b>Medidas de protección sugeridas</b><div id="medidasSugeridasFinal" style="margin-top:8px;"></div></div><div class="button-row"><button onclick="toggleDebug()" class="dark">Ver detalle técnico</button></div></div>
+      </div>
+      </section>
+
+      <section id="resultadoSection" class="card" style="display:none;">
+        <div id="resultadoVisual"><h2>Resultado final</h2><div class="risk-panel"><div class="metric-card"><small>Nivel de riesgo</small><div id="riesgoFinal" class="semaforo">-</div></div><div class="metric-card"><small>Score</small><strong id="scoreFinal">-</strong></div><div class="metric-card"><small>Estado del caso</small><strong id="estadoCaso">-</strong></div></div><div style="margin-top:18px;"><b>Motivos del riesgo</b><div id="riskReasonsFinal" style="margin-top:8px;"></div></div><div id="medidasSugeridasBox" style="display:none; margin-top:18px;"><b>Medidas de protección sugeridas</b><div id="medidasSugeridasFinal" style="margin-top:8px;"></div></div><div class="button-row"><button onclick="toggleDebug()" class="dark">Ver detalle técnico</button></div></div>
         <pre id="resultado" style="display:none;"></pre><div class="scorebar-wrap"><div id="barraScore"></div></div>
         <div id="derivacionEpiBox" class="clinical-box" style="display:none;">
-        <div class="clinical-header">
-          <h3 class="clinical-title">Derivación clínica al EPI</h3>
-          <span id="clinicalReferralBadge" class="clinical-badge">-</span>
+          <div class="clinical-header">
+            <h3 class="clinical-title">Derivación clínica al EPI</h3>
+            <span id="clinicalReferralBadge" class="clinical-badge">-</span>
+          </div>
+          <div class="clinical-section">
+            <span class="clinical-label">Motivos</span>
+            <div id="clinicalReferralReasons" class="clinical-text">-</div>
+          </div>
+          <div class="clinical-section">
+            <span class="clinical-label">Justificación</span>
+            <div id="clinicalReferralJustification" class="clinical-text">-</div>
+          </div>
         </div>
-      
-        <div class="clinical-section">
-          <span class="clinical-label">Motivos</span>
-          <div id="clinicalReferralReasons" class="clinical-text">-</div>
-        </div>
-      
-        <div class="clinical-section">
-          <span class="clinical-label">Justificación</span>
-          <div id="clinicalReferralJustification" class="clinical-text">-</div>
-        </div>
-      </div>
-      </div>
       </section>
     </main>
   </div>
@@ -1121,7 +1122,8 @@
         return;
       }
     
-      document.getElementById("resultadoVisual").style.display = "block";
+      document.getElementById("resultadoSection").style.display = "block";
+      document.getElementById("revisionSection").style.display = "none";
       document.getElementById("scoreFinal").innerText = data.score_total;
       document.getElementById("estadoCaso").innerText = data.case_status;
     
