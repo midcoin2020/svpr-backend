@@ -330,6 +330,20 @@
         color: #991b1b;
       }
 
+      .finalizada-badge {
+        display: none;
+        margin-top: 10px;
+        width: fit-content;
+        padding: 8px 12px;
+        border-radius: 999px;
+        background: #ecfdf5;
+        color: #047857;
+        font-size: 12px;
+        font-weight: 900;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+      }
+
       .collapsible-header {
         display: flex;
         justify-content: space-between;
@@ -716,7 +730,8 @@
         <div class="button-row"><button type="button" class="secondary" onclick="verContextoPrevio()">Ver contexto previo</button></div>
         <div id="contextBox" class="card" style="display:none; margin-top:18px; background:#f9fafb; box-shadow:none;"><h3 class="section-subtitle">Contexto previo</h3><div class="context-warning"><b>Contexto informativo:</b> estos antecedentes se muestran solo como referencia para el operador. <b>No fueron utilizados por el sistema para calcular el riesgo actual.</b></div><div style="margin-top:14px; margin-bottom:12px;"><b>Contexto previo</b><div id="relationshipContextSummary" style="margin-top:6px;"></div><div id="relationshipContextList" style="margin-top:8px;"></div></div></div>
         <div class="form-grid" style="margin-top:18px;"><div class="full"><label>Relato</label><textarea id="relato" placeholder="Pegá aquí el relato completo de la denuncia..."></textarea></div></div>
-        <div class="button-row"><button onclick="crearCaso()">Evaluar automáticamente</button></div>
+        <div id="evaluarActions" class="button-row"><button onclick="crearCaso()">Evaluar automáticamente</button></div>
+        <div id="evaluacionFinalizada" class="finalizada-badge">Evaluación finalizada</div>
         <div id="estado"></div>
         <div class="summary-area" style="margin-top:18px;"><div><div id="summaryBox" class="card" style="display:none; margin-top:0; background:#f9fafb; box-shadow:none;"><h3 class="section-subtitle">Resumen del hecho</h3><p id="summaryText" style="margin-bottom:0;"></p></div></div><div><div class="metric-card"><small>Riesgo preliminar</small><div id="riesgo" class="semaforo">-</div></div><div id="riesgoMeta" style="display:none; margin-top:12px;"><div><b>Motivos:</b> <span id="riskReasonsText">-</span></div><div style="margin-top:8px;"><b>Categoría dominante:</b> <span id="categoriaDominanteText">-</span></div></div></div></div>
       </section>
@@ -740,7 +755,7 @@
       </section>
 
       <section id="resultadoSection" class="card" style="display:none;">
-        <div id="resultadoVisual"><h2>Resultado final</h2><div class="risk-panel"><div class="metric-card"><small>Nivel de riesgo</small><div id="riesgoFinal" class="semaforo">-</div></div><div class="metric-card"><small>Score</small><strong id="scoreFinal">-</strong></div><div class="metric-card"><small>Estado del caso</small><strong id="estadoCaso">-</strong></div></div><div style="margin-top:18px;"><b>Motivos del riesgo</b><div id="riskReasonsFinal" style="margin-top:8px;"></div></div><div id="medidasSugeridasBox" style="display:none; margin-top:18px;"><b>Medidas de protección sugeridas</b><div id="medidasSugeridasFinal" style="margin-top:8px;"></div></div><div class="button-row"><button onclick="toggleDebug()" class="dark">Ver detalle técnico</button></div></div>
+        <div id="resultadoVisual"><h2>Resultado final</h2><div class="risk-panel"><div class="metric-card"><small>Nivel de riesgo</small><div id="riesgoFinal" class="semaforo">-</div></div><div class="metric-card"><small>Score</small><strong id="scoreFinal">-</strong></div><div class="metric-card"><small>Estado del caso</small><strong id="estadoCaso">-</strong></div></div><div style="margin-top:18px;"><b>Riesgo · Motivos</b><div id="riskReasonsFinal" style="margin-top:8px;"></div></div><div id="medidasSugeridasBox" style="display:none; margin-top:18px;"><b>Medidas de protección sugeridas</b><div id="medidasSugeridasFinal" style="margin-top:8px;"></div></div><div class="button-row"><button type="button" class="secondary" onclick="mostrarRevision()">Mostrar revisión del operador</button><button onclick="toggleDebug()" class="dark">Ver detalle técnico</button></div></div>
         <pre id="resultado" style="display:none;"></pre><div class="scorebar-wrap"><div id="barraScore"></div></div>
         <div id="derivacionEpiBox" class="clinical-box" style="display:none;">
           <div class="clinical-header">
@@ -1107,6 +1122,14 @@
       btn.innerText = isOpen ? "Ocultar" : "Mostrar";
     }
 
+    function mostrarRevision() {
+      const content = document.getElementById("revisionContent");
+      const btn = document.getElementById("revisionToggleBtn");
+      content.classList.add("open");
+      btn.innerText = "Ocultar";
+      document.getElementById("revisionSection").scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+
     async function recalcularEvaluacion() {
 
       const res = await fetch(API + "/recalcular-evaluacion", {
@@ -1123,7 +1146,13 @@
       }
     
       document.getElementById("resultadoSection").style.display = "block";
-      document.getElementById("revisionSection").style.display = "none";
+      document.getElementById("evaluarActions").style.display = "none";
+      document.getElementById("evaluacionFinalizada").style.display = "inline-block";
+      document.getElementById("estado").innerText = "Informe final generado";
+      const revisionContent = document.getElementById("revisionContent");
+      const revisionBtn = document.getElementById("revisionToggleBtn");
+      revisionContent.classList.remove("open");
+      revisionBtn.innerText = "Mostrar";
       document.getElementById("scoreFinal").innerText = data.score_total;
       document.getElementById("estadoCaso").innerText = data.case_status;
     
