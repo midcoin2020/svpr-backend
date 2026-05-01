@@ -274,6 +274,32 @@ Si no hay medidas con fundamento suficiente, devolver:
 }
 """
 
+CLINICAL_REFERRAL_JUSTIFICATION_PROMPT = """
+Sos un asistente que redacta justificaciones breves para derivación clínica al EPI en casos de violencia de género.
+
+Tu tarea es explicar brevemente el nivel de derivación clínica asignado.
+
+Si el nivel es "obligatoria", explicá por qué corresponde derivación obligatoria.
+Si el nivel es "recomendada", explicá por qué se recomienda la derivación.
+Si el nivel es "criterio", explicá que la derivación queda a criterio del operador o del equipo, sin presentarla como recomendación.
+
+IMPORTANTE:
+- No tomás decisiones.
+- No hacés diagnóstico clínico.
+- No reemplazás al EPI.
+- Solo redactás una justificación breve a partir de los datos recibidos.
+- No agregues información que no surja del caso.
+- No digas "se recomienda derivación" cuando el nivel sea "criterio".
+
+Reglas:
+- Máximo 2 oraciones.
+- Lenguaje claro, institucional y objetivo.
+- Mencionar los motivos principales.
+- No usar tono alarmista.
+
+Devolver SOLO el texto de la justificación, sin JSON ni markdown.
+"""
+
 def obtener_preguntas_cuestionario(questionnaire_id: str) -> list[dict]:
     questions_resp = (
         supabase.table("questionnaire_questions")
@@ -487,6 +513,93 @@ def obtener_motivos_riesgo(score_total: float, respuestas: list[dict]) -> tuple[
         return "moderado", motivos_moderado
 
     return "bajo", ["Sin indicadores relevantes suficientes en esta valoración preliminar"]
+
+def obtener_derivacion_epi(respuestas: list[dict]) -> dict:
+    resp = {r["code"]: r["suggested_value"] for r in respuestas}
+
+    def es_true(code: str) -> bool:
+        return resp.get(code) == "true"
+
+    motivos = []
+
+    # 🔴 OBLIGATORIA
+    if (
+        es_true("VULNERABILIDAD_FISICA") or
+        es_true("VULNERABILIDAD_PSICOLOGICA") or
+        es_true("BAJA_CAPACIDAD_AUTOCUIDADO") or
+        es_true("TEMOR_INTENSO_VICTIMA")
+    ):
+        if es_true("VULNERABILIDAD_FISICA"):
+            motivos.append("Vulnerabilidad física relevante")
+        if es_true("VULNERABILIDAD_PSICOLOGICA"):
+            motivos.append("Vulnerabilidad psicológica")
+        if es_true("BAJA_CAPACIDAD_AUTOCUIDADO"):
+            motivos.append("Baja capacidad de autocuidado")
+        if es_true("TEMOR_INTENSO_VICTIMA"):
+            motivos.append("Temor intenso de la víctima")
+
+        return {
+            "nivel": "obligatoria",
+            "motivos": motivos
+        }
+
+    # 🟠 RECOMENDADA
+    if (
+        (es_true("VIOLENCIA_FISICA") and es_true("TEMOR_INTENSO_VICTIMA")) or
+        (es_true("VIOLENCIA_PSICOLOGICA") and es_true("CONTROL_DOMINIO")) or
+        es_true("VIOLENCIA_CRONICA") or
+        es_true("HECHOS_ANTERIORES")
+    ):
+        if es_true("VIOLENCIA_FISICA") and es_true("TEMOR_INTENSO_VICTIMA"):
+            motivos.append("Violencia física con temor intenso")
+        if es_true("VIOLENCIA_PSICOLOGICA") and es_true("CONTROL_DOMINIO"):
+            motivos.append("Violencia psicológica con control/dominio")
+        if es_true("VIOLENCIA_CRONICA"):
+            motivos.append("Violencia persistente en el tiempo")
+        if es_true("HECHOS_ANTERIORES"):
+            motivos.append("Antecedentes de violencia")
+
+        return {
+            "nivel": "recomendada",
+            "motivos": motivos
+        }
+
+    # 🟡 CRITERIO
+    return {
+        "nivel": "criterio",
+        "motivos": ["Sin indicadores clínicos suficientes"]
+    }
+
+def generar_justificacion_derivacion_epi_con_ia(
+    nivel: str,
+    motivos: list[str],
+    narrative: str,
+) -> str:
+    try:
+        contenido_usuario = {
+            "nivel_derivacion": nivel,
+            "motivos": motivos,
+            "relato": narrative,
+        }
+
+        response = client.responses.create(
+            model=OPENAI_MODEL,
+            input=[
+                {
+                    "role": "developer",
+                    "content": CLINICAL_REFERRAL_JUSTIFICATION_PROMPT,
+                },
+                {
+                    "role": "user",
+                    "content": json.dumps(contenido_usuario, ensure_ascii=False),
+                },
+            ],
+        )
+
+        return response.output_text.strip()
+
+    except Exception:
+        return "Derivación sugerida conforme a los indicadores clínicos detectados por el sistema."
 
 def generar_medidas_sugeridas(
     assessment_id: str,
@@ -1007,6 +1120,7 @@ def crear_evaluacion_desde_extraccion(payload: CrearEvaluacionRequest):
             categoria_dominante = max(score_por_categoria, key=score_por_categoria.get)
 
         risk_level, risk_reasons = obtener_motivos_riesgo(score_total, respuestas_para_clasificar)
+        derivacion = obtener_derivacion_epi(respuestas_para_clasificar)
         risk_notes = "Motivos de riesgo preliminar: " + "; ".join(risk_reasons)
 
         assessment_insert = {
@@ -1022,6 +1136,8 @@ def crear_evaluacion_desde_extraccion(payload: CrearEvaluacionRequest):
             "operator_reviewed": False,
             "performed_by_user_id": payload.performed_by_user_id,
             "notes": ((payload.notes + " | ") if payload.notes else "") + risk_notes,
+            "clinical_referral_level": derivacion["nivel"],
+            "clinical_referral_reasons": "; ".join(derivacion["motivos"]),
         }
 
         assessment_resp = (
@@ -1087,7 +1203,6 @@ def crear_evaluacion_desde_extraccion(payload: CrearEvaluacionRequest):
             "answers_loaded_for_review": len(answers_inserted),
             "score_por_categoria": score_por_categoria,
             "categoria_dominante": categoria_dominante,
-            "answers_loaded_for_review": len(answers_inserted),
         }
 
     except Exception as e:
@@ -1853,6 +1968,12 @@ def recalcular_evaluacion(payload: RecalcularEvaluacionRequest):
             categoria_dominante = max(score_por_categoria, key=score_por_categoria.get)
 
         risk_level, risk_reasons = obtener_motivos_riesgo(score_total, respuestas_para_clasificar)
+        derivacion = obtener_derivacion_epi(respuestas_para_clasificar)
+        justificacion_derivacion = generar_justificacion_derivacion_epi_con_ia(
+            nivel=derivacion["nivel"],
+            motivos=derivacion["motivos"],
+            narrative=narrative_text,
+        )
         operator_reviewed = confirmed_answers == total_answers
         case_status = "validado" if operator_reviewed else "en_evaluacion"
 
@@ -1878,6 +1999,11 @@ def recalcular_evaluacion(payload: RecalcularEvaluacionRequest):
                     "risk_level": risk_level,
                     "operator_reviewed": operator_reviewed,
                     "notes": "Motivos de riesgo preliminar: " + "; ".join(risk_reasons),
+
+                    # 👇 NUEVO
+                    "clinical_referral_level": derivacion["nivel"],
+                    "clinical_referral_reasons": "; ".join(derivacion["motivos"]),
+                    "clinical_referral_justification": justificacion_derivacion,
                 }
             )
             .eq("id", payload.assessment_id)
@@ -1913,6 +2039,9 @@ def recalcular_evaluacion(payload: RecalcularEvaluacionRequest):
             "updated_case": updated_case_resp.data,
             "score_por_categoria": score_por_categoria,
             "categoria_dominante": categoria_dominante,
+            "clinical_referral_level": derivacion["nivel"],
+            "clinical_referral_reasons": derivacion["motivos"],
+            "clinical_referral_justification": justificacion_derivacion,
         }
 
     except Exception as e:
@@ -1969,3 +2098,31 @@ def obtener_medidas_sugeridas(assessment_id: str):
 def revision():
     with open("revision.html", "r", encoding="utf-8") as f:
         return f.read()
+
+@app.get("/evaluacion/{assessment_id}/derivacion")
+def obtener_derivacion(assessment_id: str):
+    try:
+        resp = (
+            supabase.table("risk_assessments")
+            .select(
+                "clinical_referral_level, clinical_referral_reasons, clinical_referral_justification"
+            )
+            .eq("id", assessment_id)
+            .limit(1)
+            .execute()
+        )
+
+        if not resp.data:
+            return {"ok": False, "error": "No se encontró la evaluación"}
+
+        data = resp.data[0]
+
+        return {
+            "ok": True,
+            "nivel": data.get("clinical_referral_level"),
+            "motivos": data.get("clinical_referral_reasons"),
+            "justificacion": data.get("clinical_referral_justification"),
+        }
+
+    except Exception as e:
+        return {"ok": False, "error": str(e)}
