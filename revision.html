@@ -571,6 +571,35 @@
         .button-row button {
           max-width: none;
         }
+        .clinical-box{
+          margin-top:18px;
+          border:1px solid var(--border);
+          border-radius:16px;
+          padding:16px;
+          background:#f8fafc;
+        }
+        .clinical-header{
+          display:flex;
+          align-items:center;
+          gap:10px;
+          margin-bottom:10px;
+        }
+        .clinical-badge{
+          display:inline-block;
+          font-size:12px;
+          font-weight:900;
+          border-radius:999px;
+          padding:6px 10px;
+          text-transform:uppercase;
+        }
+        .clinical-obligatoria{background:#fee2e2;color:#991b1b;}
+        .clinical-recomendada{background:#ffedd5;color:#9a3412;}
+        .clinical-criterio{background:#fef3c7;color:#92400e;}
+        .clinical-text{
+          color:#475569;
+          line-height:1.5;
+          margin-top:8px;
+        }
       }
     </style>
   </head>
@@ -609,6 +638,22 @@
         <div class="button-row"><button onclick="guardar()">Guardar revisión</button></div>
         <div id="resultadoVisual" class="card" style="display:none; margin-top:22px;"><h2>Resultado final</h2><div class="risk-panel"><div class="metric-card"><small>Nivel de riesgo</small><div id="riesgoFinal" class="semaforo">-</div></div><div class="metric-card"><small>Score</small><strong id="scoreFinal">-</strong></div><div class="metric-card"><small>Estado del caso</small><strong id="estadoCaso">-</strong></div></div><div style="margin-top:18px;"><b>Motivos del riesgo</b><div id="riskReasonsFinal" style="margin-top:8px;"></div></div><div id="medidasSugeridasBox" style="display:none; margin-top:18px;"><b>Medidas de protección sugeridas</b><div id="medidasSugeridasFinal" style="margin-top:8px;"></div></div><div class="button-row"><button onclick="toggleDebug()" class="dark">Ver detalle técnico</button></div></div>
         <pre id="resultado" style="display:none;"></pre><div class="scorebar-wrap"><div id="barraScore"></div></div>
+        <div id="derivacionEpiBox" class="clinical-box" style="display:none;">
+        <div class="clinical-header">
+          <b>Derivación clínica al EPI</b>
+          <span id="clinicalReferralBadge" class="clinical-badge">-</span>
+        </div>
+      
+        <div>
+          <b>Motivos:</b>
+          <div id="clinicalReferralReasons" class="clinical-text">-</div>
+        </div>
+      
+        <div style="margin-top:10px;">
+          <b>Justificación:</b>
+          <div id="clinicalReferralJustification" class="clinical-text">-</div>
+        </div>
+      </div>
       </section>
     </main>
   </div>
@@ -941,26 +986,27 @@
     }
 
     async function recalcularEvaluacion() {
+
       const res = await fetch(API + "/recalcular-evaluacion", {
         method: "POST",
         headers: {"Content-Type": "application/json"},
         body: JSON.stringify({ assessment_id: assessmentId })
       });
-
+    
       const data = await res.json();
-
+    
       if (!data.ok) {
         alert("Error: " + (data.error || data.error_type));
         return;
       }
-
+    
       document.getElementById("resultadoVisual").style.display = "block";
       document.getElementById("scoreFinal").innerText = data.score_total;
       document.getElementById("estadoCaso").innerText = data.case_status;
-
-      // Motivos del riesgo final
+    
+      // Motivos del riesgo
       const motivosFinal = document.getElementById("riskReasonsFinal");
-
+    
       if (data.risk_reasons && data.risk_reasons.length) {
         motivosFinal.innerHTML = data.risk_reasons
           .map(m => `• ${m}`)
@@ -968,9 +1014,10 @@
       } else {
         motivosFinal.innerText = "-";
       }
-
+    
+      // Semáforo
       const riesgoDiv = document.getElementById("riesgoFinal");
-
+    
       if (data.risk_level === "alto") {
         riesgoDiv.innerHTML = "🟠 ALTO";
         riesgoDiv.className = "semaforo naranja";
@@ -981,20 +1028,61 @@
         riesgoDiv.innerHTML = "🟢 BAJO";
         riesgoDiv.className = "semaforo verde";
       }
-
+    
+      // Barra
       const porcentaje = Math.min((data.score_total || 0) * 10, 100);
       const barra = document.getElementById("barraScore");
-
       barra.style.width = porcentaje + "%";
-
-      if (data.risk_level === "alto") {
-        barra.style.background = "#f97316";
-      } else if (data.risk_level === "moderado") {
-        barra.style.background = "#eab308";
+    
+      if (data.risk_level === "alto") barra.style.background = "#f97316";
+      else if (data.risk_level === "moderado") barra.style.background = "#eab308";
+      else barra.style.background = "#16a34a";
+    
+      // ===============================
+      // 🔥 BLOQUE CLÍNICO (CORRECTO)
+      // ===============================
+    
+      const box = document.getElementById("derivacionEpiBox");
+      const badge = document.getElementById("clinicalReferralBadge");
+      const reasons = document.getElementById("clinicalReferralReasons");
+      const just = document.getElementById("clinicalReferralJustification");
+    
+      console.log("CLINICAL:", data.clinical_referral_level);
+      console.log("REASONS:", data.clinical_referral_reasons);
+    
+      if (data.clinical_referral_level) {
+    
+        box.style.display = "block";
+    
+        const nivel = data.clinical_referral_level;
+    
+        badge.className = "clinical-badge";
+        badge.classList.add(`clinical-${nivel}`);
+    
+        if (nivel === "obligatoria") {
+          badge.innerText = "Obligatoria";
+        } else if (nivel === "recomendada") {
+          badge.innerText = "Recomendada";
+        } else {
+          badge.innerText = "A criterio";
+        }
+    
+        // 🔥 ARRAY CORRECTO
+        if (data.clinical_referral_reasons && data.clinical_referral_reasons.length) {
+          reasons.innerHTML = data.clinical_referral_reasons
+            .map(m => `• ${m}`)
+            .join("<br>");
+        } else {
+          reasons.innerText = "-";
+        }
+    
+        just.innerText = data.clinical_referral_justification || "-";
+    
       } else {
-        barra.style.background = "#16a34a";
+        box.style.display = "none";
       }
-
+    
+      // Debug JSON
       document.getElementById("resultado").textContent =
         JSON.stringify(data, null, 2);
     }
