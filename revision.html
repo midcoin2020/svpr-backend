@@ -706,18 +706,36 @@
         }
       }
     </style>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   </head>
     
 <body>
-  <div class="app">
+  <div id="loginScreen" style="min-height:100vh; display:flex; align-items:center; justify-content:center; background:#f5f7fb;">
+    <div class="card" style="width:380px;">
+      <h2>SIR</h2>
+      <p style="color:#64748b;">Ingreso al sistema</p>
+  
+      <label>Email</label>
+      <input id="loginEmail" type="email" placeholder="usuario@dominio.com">
+  
+      <label style="margin-top:12px;">Contraseña</label>
+      <input id="loginPassword" type="password" placeholder="Contraseña">
+  
+      <button onclick="login()" style="margin-top:18px;">Ingresar</button>
+  
+      <div id="loginError" style="margin-top:12px; color:#dc2626; font-weight:700;"></div>
+    </div>
+  </div>
+  <div id="appScreen" class="app" style="display:none;">
     <aside class="sidebar">
-      <div class="brand"><div class="brand-icon">🛡️</div><div><h1>SVPR</h1><p>Sistema de valoración preliminar de riesgo</p></div></div>
+      <div class="brand"><div class="brand-icon">🛡️</div><div><h1>SIR</h1><p>Sistema de Identificación de Riesgo</p></div></div>
       <div><p class="nav-title">Principal</p><div class="nav-item"><span>⌂</span><span>Inicio</span></div><div class="nav-item"><span>📄</span><span>Incidentes</span></div><div class="nav-item active"><span>✓</span><span>Evaluación</span></div><div class="nav-item"><span>🛡</span><span>Medidas</span></div></div>
       <div><p class="nav-title">Seguimiento</p><div class="nav-item"><span>⚠</span><span>Alertas</span></div><div class="nav-item"><span>▦</span><span>Catálogos</span></div><div class="nav-item"><span>☷</span><span>Auditoría</span></div></div>
       <div class="status-pill">Entorno local · FastAPI</div>
     </aside>
     <main class="main">
-      <div class="topbar"><div class="breadcrumb">Inicio <span>›</span> Valoraciones <span>›</span> Nueva evaluación</div><div class="userbox"><div class="avatar">👤</div><div><strong>Operador</strong><small>Revisión asistida</small></div></div></div>
+      <div class="topbar"><div class="breadcrumb">Inicio <span>›</span> Valoraciones <span>›</span> Nueva evaluación</div><div class="userbox"><div class="avatar">👤</div><div><strong>Operador</strong><button onclick="logout()" class="secondary" style="padding:6px 10px; font-size:12px;">Salir</button><small>Revisión asistida</small></div></div></div>
       <section class="hero"><div><h2>Evaluación de riesgo</h2><p>Ingreso del relato, extracción asistida por IA, revisión del operador y medidas sugeridas para el caso.</p></div><div class="hero-badge">● Modo revisión</div></section>
       <section class="card">
         <div class="card-header"><div><h2>1. Ingreso del caso</h2><p>Completá los datos mínimos y pegá el relato de la denuncia.</p></div></div>
@@ -776,8 +794,15 @@
   </div>
 <script>
     const API = window.location.origin;
+
+    const SUPABASE_URL = "https://faligkkrzmvpuqfprkym.supabase.co";
+    const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZhbGlna2tyem12cHVxZnBya3ltIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU4NDA1NzEsImV4cCI6MjA5MTQxNjU3MX0.QPviGJ5s7d7m13rABHNLYM5y8KZHuFNZ-HwHsPfqKTg";
+    
+    const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    
     let assessmentId = null;
     let currentCaseId = null;
+    let currentUser = null;
 
     async function crearCaso() {
       const body = {
@@ -1220,13 +1245,22 @@
         }
     
         // 🔥 ARRAY CORRECTO
-        if (data.clinical_referral_reasons && data.clinical_referral_reasons.length) {
-          reasons.innerHTML = data.clinical_referral_reasons
-            .map(m => `• ${m}`)
-            .join("<br>");
-        } else {
-          reasons.innerText = "-";
-        }
+       const motivosDerivacion = Array.isArray(data.clinical_referral_reasons)
+        ? data.clinical_referral_reasons
+        : data.clinical_referral_reasons
+          ? String(data.clinical_referral_reasons)
+              .split(";")
+              .map(m => m.trim())
+              .filter(Boolean)
+          : [];
+      
+      if (motivosDerivacion.length) {
+        reasons.innerHTML = motivosDerivacion
+          .map(m => `• ${m}`)
+          .join("<br>");
+      } else {
+        reasons.innerText = "-";
+      }
     
         just.innerText = data.clinical_referral_justification || "-";
     
@@ -1305,4 +1339,50 @@
       if (c === "contexto_juridico") return "Contexto jurídico";
       return c || "-";
     }
+    async function login() {
+      const email = document.getElementById("loginEmail").value.trim();
+      const password = document.getElementById("loginPassword").value;
+      const errorBox = document.getElementById("loginError");
+    
+      errorBox.innerText = "";
+    
+      const { data, error } = await supabaseClient.auth.signInWithPassword({
+        email,
+        password
+      });
+    
+      if (error) {
+        errorBox.innerText = error.message;
+        return;
+      }
+    
+      currentUser = data.user;
+      mostrarApp();
+    }
+    
+    async function logout() {
+      await supabaseClient.auth.signOut();
+      currentUser = null;
+      document.getElementById("appScreen").style.display = "none";
+      document.getElementById("loginScreen").style.display = "flex";
+    }
+    
+    function mostrarApp() {
+      document.getElementById("loginScreen").style.display = "none";
+      document.getElementById("appScreen").style.display = "grid";
+    }
+    
+    async function verificarSesion() {
+      const { data } = await supabaseClient.auth.getSession();
+    
+      if (data.session && data.session.user) {
+        currentUser = data.session.user;
+        mostrarApp();
+      } else {
+        document.getElementById("loginScreen").style.display = "flex";
+        document.getElementById("appScreen").style.display = "none";
+      }
+    }
+    
+    verificarSesion();
   </script></body></html>
