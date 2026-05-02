@@ -315,66 +315,6 @@
         max-width: 260px;
       }
 
-      .save-status {
-        margin-top: 10px;
-        font-size: 14px;
-        font-weight: 700;
-        color: var(--muted);
-      }
-
-      .save-status.ok {
-        color: #166534;
-      }
-
-      .save-status.error {
-        color: #991b1b;
-      }
-
-      .finalizada-badge {
-        display: none;
-        margin-top: 10px;
-        width: fit-content;
-        padding: 8px 12px;
-        border-radius: 999px;
-        background: #ecfdf5;
-        color: #047857;
-        font-size: 12px;
-        font-weight: 900;
-        letter-spacing: 0.04em;
-        text-transform: uppercase;
-      }
-
-      .collapsible-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        width: 100%;
-        gap: 16px;
-      }
-
-      .collapsible-toggle {
-        width: auto;
-        border: 1px solid var(--border);
-        background: #fff;
-        color: var(--text);
-        font-weight: 800;
-        border-radius: 10px;
-        padding: 8px 12px;
-        box-shadow: none;
-      }
-
-      .collapsible-toggle:hover {
-        transform: none;
-      }
-
-      .collapsible-content {
-        display: none;
-      }
-
-      .collapsible-content.open {
-        display: block;
-      }
-
       #estado {
         margin-top: 14px;
         color: var(--muted);
@@ -604,79 +544,6 @@
         line-height: 1.5;
       }
 
-      .clinical-box {
-        margin-top: 18px;
-        border: 1px solid var(--border);
-        border-radius: 16px;
-        padding: 18px;
-        background: linear-gradient(180deg, #ffffff, #f8fbff);
-        box-shadow: 0 8px 24px rgba(15, 23, 42, 0.05);
-      }
-
-      .clinical-header {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: 12px;
-        margin-bottom: 12px;
-        padding-bottom: 10px;
-        border-bottom: 1px solid #e7eef8;
-      }
-
-      .clinical-title {
-        margin: 0;
-        font-size: 16px;
-        letter-spacing: -0.01em;
-      }
-
-      .clinical-badge {
-        display: inline-block;
-        font-size: 11px;
-        font-weight: 900;
-        border-radius: 999px;
-        padding: 6px 10px;
-        text-transform: uppercase;
-        letter-spacing: 0.05em;
-      }
-
-      .clinical-obligatoria {
-        background: #fee2e2;
-        color: #991b1b;
-      }
-
-      .clinical-recomendada {
-        background: #ffedd5;
-        color: #9a3412;
-      }
-
-      .clinical-criterio {
-        background: #fef3c7;
-        color: #92400e;
-      }
-
-      .clinical-section {
-        margin-top: 10px;
-      }
-
-      .clinical-label {
-        display: block;
-        font-size: 12px;
-        font-weight: 900;
-        text-transform: uppercase;
-        letter-spacing: 0.06em;
-        color: var(--muted);
-        margin-bottom: 6px;
-      }
-
-      .clinical-text {
-        color: #334155;
-        line-height: 1.55;
-        background: #ffffff;
-        border: 1px solid #e2e8f0;
-        border-radius: 12px;
-        padding: 10px 12px;
-      }
-
       @media (max-width: 980px) {
         .app {
           grid-template-columns: 1fr;
@@ -704,38 +571,49 @@
         .button-row button {
           max-width: none;
         }
+        .clinical-box{
+          margin-top:18px;
+          border:1px solid var(--border);
+          border-radius:16px;
+          padding:16px;
+          background:#f8fafc;
+        }
+        .clinical-header{
+          display:flex;
+          align-items:center;
+          gap:10px;
+          margin-bottom:10px;
+        }
+        .clinical-badge{
+          display:inline-block;
+          font-size:12px;
+          font-weight:900;
+          border-radius:999px;
+          padding:6px 10px;
+          text-transform:uppercase;
+        }
+        .clinical-obligatoria{background:#fee2e2;color:#991b1b;}
+        .clinical-recomendada{background:#ffedd5;color:#9a3412;}
+        .clinical-criterio{background:#fef3c7;color:#92400e;}
+        .clinical-text{
+          color:#475569;
+          line-height:1.5;
+          margin-top:8px;
+        }
       }
     </style>
-
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   </head>
     
 <body>
-  <div id="loginScreen" style="min-height:100vh; display:flex; align-items:center; justify-content:center; background:#f5f7fb;">
-    <div class="card" style="width:380px;">
-      <h2>SIR</h2>
-      <p style="color:#64748b;">Ingreso al sistema</p>
-  
-      <label>Email</label>
-      <input id="loginEmail" type="email" placeholder="usuario@dominio.com">
-  
-      <label style="margin-top:12px;">Contraseña</label>
-      <input id="loginPassword" type="password" placeholder="Contraseña">
-  
-      <button onclick="login()" style="margin-top:18px;">Ingresar</button>
-  
-      <div id="loginError" style="margin-top:12px; color:#dc2626; font-weight:700;"></div>
-    </div>
-  </div>
-  <div id="appScreen" class="app" style="display:none;">
+  <div class="app">
     <aside class="sidebar">
-      <div class="brand"><div class="brand-icon">🛡️</div><div><h1>SIR</h1><p>Sistema de Identificación de Riesgo</p></div></div>
+      <div class="brand"><div class="brand-icon">🛡️</div><div><h1>SVPR</h1><p>Sistema de valoración preliminar de riesgo</p></div></div>
       <div><p class="nav-title">Principal</p><div class="nav-item"><span>⌂</span><span>Inicio</span></div><div class="nav-item"><span>📄</span><span>Incidentes</span></div><div class="nav-item active"><span>✓</span><span>Evaluación</span></div><div class="nav-item"><span>🛡</span><span>Medidas</span></div></div>
       <div><p class="nav-title">Seguimiento</p><div class="nav-item"><span>⚠</span><span>Alertas</span></div><div class="nav-item"><span>▦</span><span>Catálogos</span></div><div class="nav-item"><span>☷</span><span>Auditoría</span></div></div>
       <div class="status-pill">Entorno local · FastAPI</div>
     </aside>
     <main class="main">
-      <div class="topbar"><div class="breadcrumb">Inicio <span>›</span> Valoraciones <span>›</span> Nueva evaluación</div><div class="userbox"><div class="avatar">👤</div><div><strong>Operador</strong><button onclick="logout()" class="secondary" style="padding:6px 10px; font-size:12px;">Salir</button><small>Revisión asistida</small></div></div></div>
+      <div class="topbar"><div class="breadcrumb">Inicio <span>›</span> Valoraciones <span>›</span> Nueva evaluación</div><div class="userbox"><div class="avatar">👤</div><div><strong>Operador</strong><small>Revisión asistida</small></div></div></div>
       <section class="hero"><div><h2>Evaluación de riesgo</h2><p>Ingreso del relato, extracción asistida por IA, revisión del operador y medidas sugeridas para el caso.</p></div><div class="hero-badge">● Modo revisión</div></section>
       <section class="card">
         <div class="card-header"><div><h2>1. Ingreso del caso</h2><p>Completá los datos mínimos y pegá el relato de la denuncia.</p></div></div>
@@ -748,61 +626,41 @@
         <div class="button-row"><button type="button" class="secondary" onclick="verContextoPrevio()">Ver contexto previo</button></div>
         <div id="contextBox" class="card" style="display:none; margin-top:18px; background:#f9fafb; box-shadow:none;"><h3 class="section-subtitle">Contexto previo</h3><div class="context-warning"><b>Contexto informativo:</b> estos antecedentes se muestran solo como referencia para el operador. <b>No fueron utilizados por el sistema para calcular el riesgo actual.</b></div><div style="margin-top:14px; margin-bottom:12px;"><b>Contexto previo</b><div id="relationshipContextSummary" style="margin-top:6px;"></div><div id="relationshipContextList" style="margin-top:8px;"></div></div></div>
         <div class="form-grid" style="margin-top:18px;"><div class="full"><label>Relato</label><textarea id="relato" placeholder="Pegá aquí el relato completo de la denuncia..."></textarea></div></div>
-        <div id="evaluarActions" class="button-row"><button onclick="crearCaso()">Evaluar automáticamente</button></div>
-        <div id="evaluacionFinalizada" class="finalizada-badge">Evaluación finalizada</div>
+        <div class="button-row"><button onclick="crearCaso()">Evaluar automáticamente</button></div>
         <div id="estado"></div>
         <div class="summary-area" style="margin-top:18px;"><div><div id="summaryBox" class="card" style="display:none; margin-top:0; background:#f9fafb; box-shadow:none;"><h3 class="section-subtitle">Resumen del hecho</h3><p id="summaryText" style="margin-bottom:0;"></p></div></div><div><div class="metric-card"><small>Riesgo preliminar</small><div id="riesgo" class="semaforo">-</div></div><div id="riesgoMeta" style="display:none; margin-top:12px;"><div><b>Motivos:</b> <span id="riskReasonsText">-</span></div><div style="margin-top:8px;"><b>Categoría dominante:</b> <span id="categoriaDominanteText">-</span></div></div></div></div>
       </section>
-      <section class="card" id="revisionSection">
-        <div class="card-header">
-          <div class="collapsible-header">
-            <div>
-              <h2>2. Revisión del operador</h2>
-              <p>Revisá respuestas, completá los “No se sabe” y guardá la valoración final.</p>
-            </div>
-            <button type="button" id="revisionToggleBtn" class="collapsible-toggle" onclick="toggleRevisionSection()">Mostrar</button>
-          </div>
-        </div>
-        <div id="revisionContent" class="collapsible-content">
+      <section class="card">
+        <div class="card-header"><div><h2>2. Revisión del operador</h2><p>Revisá respuestas, completá los “No se sabe” y guardá la valoración final.</p></div></div>
         <div class="tabs"><div class="tab active">Respuestas</div><div class="tab">Entrevista</div><div class="tab">Resultado final</div><div class="tab">Medidas sugeridas</div></div>
         <div id="preguntas"></div>
         <div id="entrevistaBox" class="card" style="display:none; margin-top:18px; background:#f9fafb; box-shadow:none;"><h3 class="section-subtitle">Preguntas sugeridas para entrevista</h3><div id="preguntasEntrevista"></div></div>
         <div class="button-row"><button onclick="guardar()">Guardar revisión</button></div>
-        <div id="guardarEstado" class="save-status" aria-live="polite"></div>
-      </div>
-      </section>
-
-      <section id="resultadoSection" class="card" style="display:none;">
-        <div id="resultadoVisual"><h2>Resultado final</h2><div class="risk-panel"><div class="metric-card"><small>Nivel de riesgo</small><div id="riesgoFinal" class="semaforo">-</div></div><div class="metric-card"><small>Score</small><strong id="scoreFinal">-</strong></div><div class="metric-card"><small>Estado del caso</small><strong id="estadoCaso">-</strong></div></div><div style="margin-top:18px;"><b>Riesgo · Motivos</b><div id="riskReasonsFinal" style="margin-top:8px;"></div></div><div id="medidasSugeridasBox" style="display:none; margin-top:18px;"><b>Medidas de protección sugeridas</b><div id="medidasSugeridasFinal" style="margin-top:8px;"></div></div><div class="button-row"><button type="button" class="secondary" onclick="mostrarRevision()">Mostrar revisión del operador</button><button onclick="toggleDebug()" class="dark">Ver detalle técnico</button></div></div>
+        <div id="resultadoVisual" class="card" style="display:none; margin-top:22px;"><h2>Resultado final</h2><div class="risk-panel"><div class="metric-card"><small>Nivel de riesgo</small><div id="riesgoFinal" class="semaforo">-</div></div><div class="metric-card"><small>Score</small><strong id="scoreFinal">-</strong></div><div class="metric-card"><small>Estado del caso</small><strong id="estadoCaso">-</strong></div></div><div style="margin-top:18px;"><b>Motivos del riesgo</b><div id="riskReasonsFinal" style="margin-top:8px;"></div></div><div id="medidasSugeridasBox" style="display:none; margin-top:18px;"><b>Medidas de protección sugeridas</b><div id="medidasSugeridasFinal" style="margin-top:8px;"></div></div><div class="button-row"><button onclick="toggleDebug()" class="dark">Ver detalle técnico</button></div></div>
         <pre id="resultado" style="display:none;"></pre><div class="scorebar-wrap"><div id="barraScore"></div></div>
         <div id="derivacionEpiBox" class="clinical-box" style="display:none;">
-          <div class="clinical-header">
-            <h3 class="clinical-title">Derivación clínica al EPI</h3>
-            <span id="clinicalReferralBadge" class="clinical-badge">-</span>
-          </div>
-          <div class="clinical-section">
-            <span class="clinical-label">Motivos</span>
-            <div id="clinicalReferralReasons" class="clinical-text">-</div>
-          </div>
-          <div class="clinical-section">
-            <span class="clinical-label">Justificación</span>
-            <div id="clinicalReferralJustification" class="clinical-text">-</div>
-          </div>
+        <div class="clinical-header">
+          <b>Derivación clínica al EPI</b>
+          <span id="clinicalReferralBadge" class="clinical-badge">-</span>
         </div>
+      
+        <div>
+          <b>Motivos:</b>
+          <div id="clinicalReferralReasons" class="clinical-text">-</div>
+        </div>
+      
+        <div style="margin-top:10px;">
+          <b>Justificación:</b>
+          <div id="clinicalReferralJustification" class="clinical-text">-</div>
+        </div>
+      </div>
       </section>
     </main>
   </div>
 <script>
     const API = window.location.origin;
-
-    const SUPABASE_URL = "https://faligkkrzmvpuqfprkym.supabase.co";
-    const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZhbGlna2tyem12cHVxZnBya3ltIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU4NDA1NzEsImV4cCI6MjA5MTQxNjU3MX0.QPviGJ5s7d7m13rABHNLYM5y8KZHuFNZ-HwHsPfqKTg";
-    
-    const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-    
     let assessmentId = null;
     let currentCaseId = null;
-    let currentUser = null;
 
     async function crearCaso() {
       const body = {
@@ -819,7 +677,7 @@
       try {
         const res = await fetch(API + "/crear-caso-desde-relato", {
           method: "POST",
-          headers: await authHeaders(),
+          headers: {"Content-Type": "application/json"},
           body: JSON.stringify(body)
         });
 
@@ -868,7 +726,7 @@
       try {
         const res = await fetch(API + "/obtener-contexto", {
           method: "POST",
-          headers: await authHeaders(),
+          headers: {"Content-Type": "application/json"},
           body: JSON.stringify({
             victim_document: victimDocument,
             aggressor_document: aggressorDocument,
@@ -935,9 +793,7 @@
       preguntas.innerHTML = "<p>Cargando respuestas...</p>";
 
       try {
-        const res = await fetch(`${API}/evaluacion/${assessmentId}/respuestas`, {
-          headers: await authHeaders()
-        });
+        const res = await fetch(`${API}/evaluacion/${assessmentId}/respuestas`);
         const data = await res.json();
 
         if (!data.ok) {
@@ -1005,9 +861,7 @@
       if (!assessmentId) return;
 
       try {
-        const res = await fetch(`${API}/evaluacion/${assessmentId}/preguntas-entrevista`, {
-          headers: await authHeaders()
-        });
+        const res = await fetch(`${API}/evaluacion/${assessmentId}/preguntas-entrevista`);
         const data = await res.json();
 
         if (!data.ok) {
@@ -1056,9 +910,7 @@
       if (!assessmentId) return;
 
       try {
-        const res = await fetch(`${API}/evaluacion/${assessmentId}/medidas-sugeridas`, {
-          headers: await authHeaders()
-        });
+        const res = await fetch(`${API}/evaluacion/${assessmentId}/medidas-sugeridas`);
         const data = await res.json();
 
         if (!data.ok) {
@@ -1101,10 +953,6 @@
     }
 
     async function guardar() {
-      const guardarEstado = document.getElementById("guardarEstado");
-      guardarEstado.className = "save-status";
-      guardarEstado.innerText = "Guardando...";
-
       const items = [];
 
       document.querySelectorAll(".question").forEach(q => {
@@ -1115,57 +963,33 @@
         });
       });
 
-      try {
-        const res = await fetch(API + "/revisar-respuestas-lote", {
-          method: "POST",
-          headers: await authHeaders(),
-          body: JSON.stringify({
-            assessment_id: assessmentId,
-            answers: items
-          })
-        });
+      const res = await fetch(API + "/revisar-respuestas-lote", {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({
+          assessment_id: assessmentId,
+          answers: items
+        })
+      });
 
-        const data = await res.json();
+      const data = await res.json();
 
-        if (data.ok) {
-          guardarEstado.className = "save-status ok";
-          guardarEstado.innerText = "Guardado";
-          await recalcularEvaluacion();
-          await cargarPreguntasEntrevista();
-          await cargarMedidasSugeridas();
-        } else {
-          const msg = data.error || data.error_type || "Error al guardar";
-          guardarEstado.className = "save-status error";
-          guardarEstado.innerText = msg;
-          alert(msg);
-        }
-      } catch (err) {
-        guardarEstado.className = "save-status error";
-        guardarEstado.innerText = "Error al guardar: " + err.message;
-        alert("Error al guardar: " + err.message);
+      if (data.ok) {
+        alert("Guardado");
+        await recalcularEvaluacion();
+        await cargarPreguntasEntrevista();
+        await cargarMedidasSugeridas();
+      } else {
+        alert(data.error || data.error_type || "Error al guardar");
       }
-    }
 
-    function toggleRevisionSection() {
-      const content = document.getElementById("revisionContent");
-      const btn = document.getElementById("revisionToggleBtn");
-      const isOpen = content.classList.toggle("open");
-      btn.innerText = isOpen ? "Ocultar" : "Mostrar";
-    }
-
-    function mostrarRevision() {
-      const content = document.getElementById("revisionContent");
-      const btn = document.getElementById("revisionToggleBtn");
-      content.classList.add("open");
-      btn.innerText = "Ocultar";
-      document.getElementById("revisionSection").scrollIntoView({ behavior: "smooth", block: "start" });
     }
 
     async function recalcularEvaluacion() {
 
       const res = await fetch(API + "/recalcular-evaluacion", {
         method: "POST",
-        headers: await authHeaders(),
+        headers: {"Content-Type": "application/json"},
         body: JSON.stringify({ assessment_id: assessmentId })
       });
     
@@ -1176,14 +1000,7 @@
         return;
       }
     
-      document.getElementById("resultadoSection").style.display = "block";
-      document.getElementById("evaluarActions").style.display = "none";
-      document.getElementById("evaluacionFinalizada").style.display = "inline-block";
-      document.getElementById("estado").innerText = "Informe final generado";
-      const revisionContent = document.getElementById("revisionContent");
-      const revisionBtn = document.getElementById("revisionToggleBtn");
-      revisionContent.classList.remove("open");
-      revisionBtn.innerText = "Mostrar";
+      document.getElementById("resultadoVisual").style.display = "block";
       document.getElementById("scoreFinal").innerText = data.score_total;
       document.getElementById("estadoCaso").innerText = data.case_status;
     
@@ -1251,22 +1068,13 @@
         }
     
         // 🔥 ARRAY CORRECTO
-       const motivosDerivacion = Array.isArray(data.clinical_referral_reasons)
-        ? data.clinical_referral_reasons
-        : data.clinical_referral_reasons
-          ? String(data.clinical_referral_reasons)
-              .split(";")
-              .map(m => m.trim())
-              .filter(Boolean)
-          : [];
-      
-      if (motivosDerivacion.length) {
-        reasons.innerHTML = motivosDerivacion
-          .map(m => `• ${m}`)
-          .join("<br>");
-      } else {
-        reasons.innerText = "-";
-      }
+        if (data.clinical_referral_reasons && data.clinical_referral_reasons.length) {
+          reasons.innerHTML = data.clinical_referral_reasons
+            .map(m => `• ${m}`)
+            .join("<br>");
+        } else {
+          reasons.innerText = "-";
+        }
     
         just.innerText = data.clinical_referral_justification || "-";
     
@@ -1345,63 +1153,4 @@
       if (c === "contexto_juridico") return "Contexto jurídico";
       return c || "-";
     }
-    async function login() {
-      const email = document.getElementById("loginEmail").value.trim();
-      const password = document.getElementById("loginPassword").value;
-      const errorBox = document.getElementById("loginError");
-    
-      errorBox.innerText = "";
-    
-      const { data, error } = await supabaseClient.auth.signInWithPassword({
-        email,
-        password
-      });
-    
-      if (error) {
-        errorBox.innerText = error.message;
-        return;
-      }
-    
-      currentUser = data.user;
-      mostrarApp();
-    }
-    
-    async function logout() {
-      await supabaseClient.auth.signOut();
-      currentUser = null;
-      document.getElementById("appScreen").style.display = "none";
-      document.getElementById("loginScreen").style.display = "flex";
-    }
-    
-    function mostrarApp() {
-      document.getElementById("loginScreen").style.display = "none";
-      document.getElementById("appScreen").style.display = "grid";
-    }
-    
-    async function verificarSesion() {
-      const { data } = await supabaseClient.auth.getSession();
-    
-      if (data.session && data.session.user) {
-        currentUser = data.session.user;
-        mostrarApp();
-      } else {
-        document.getElementById("loginScreen").style.display = "flex";
-        document.getElementById("appScreen").style.display = "none";
-      }
-    }
-    
-    verificarSesion();
-  
-    async function authHeaders() {
-      const { data } = await supabaseClient.auth.getSession();
-    
-      if (!data.session) {
-        throw new Error("Sesión no iniciada");
-      }
-    
-      return {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${data.session.access_token}`
-      };
-    }  
   </script></body></html>

@@ -8,6 +8,8 @@ from fastapi.responses import HTMLResponse
 from openai import OpenAI
 from pydantic import BaseModel
 from supabase import create_client, Client
+from fastapi import Depends, HTTPException
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 
 
 load_dotenv()
@@ -300,6 +302,39 @@ Reglas:
 Devolver SOLO el texto de la justificación, sin JSON ni markdown.
 """
 
+security = HTTPBearer()
+
+def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(security)):
+    token = credentials.credentials
+
+    try:
+        user_response = supabase.auth.get_user(token)
+
+        if not user_response or not user_response.user:
+            raise HTTPException(status_code=401, detail="Usuario no autenticado")
+
+        auth_user = user_response.user
+        email = auth_user.email
+
+        user_resp = (
+            supabase.table("users")
+            .select("id, full_name, email, role, active")
+            .eq("email", email)
+            .eq("active", True)
+            .limit(1)
+            .execute()
+        )
+
+        if not user_resp.data:
+            raise HTTPException(status_code=403, detail="Usuario no autorizado o inactivo")
+
+        return user_resp.data[0]
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=401, detail=f"Token inválido: {str(e)}")
+    
 def obtener_preguntas_cuestionario(questionnaire_id: str) -> list[dict]:
     questions_resp = (
         supabase.table("questionnaire_questions")
@@ -872,7 +907,7 @@ def read_root():
 
 
 @app.get("/test-ia")
-def test_ia():
+def test_ia(current_user: dict = Depends(get_current_user)):
     try:
         response = client.responses.create(
             model=OPENAI_MODEL,
@@ -904,7 +939,6 @@ def limpiar_y_parsear_json(texto: str):
     return json.loads(texto)
 
 
-@app.post("/extraer-y-guardar")
 def extraer_y_guardar(payload: NarrativeRequest):
     try:
         preguntas = obtener_preguntas_cuestionario(payload.questionnaire_id)
@@ -1030,7 +1064,6 @@ def extraer_y_guardar(payload: NarrativeRequest):
         }
 
 
-@app.post("/crear-evaluacion-desde-extraccion")
 def crear_evaluacion_desde_extraccion(payload: CrearEvaluacionRequest):
     try:
         extraction_resp = (
@@ -1214,7 +1247,10 @@ def crear_evaluacion_desde_extraccion(payload: CrearEvaluacionRequest):
 
 
 @app.post("/obtener-contexto")
-def obtener_contexto(payload: ObtenerContextoRequest):
+def obtener_contexto(
+    payload: ObtenerContextoRequest,
+    current_user: dict = Depends(get_current_user)
+):
     try:
         aggressor_document = payload.aggressor_document.strip() if payload.aggressor_document else None
         aggressor_reference = payload.aggressor_reference.strip() if payload.aggressor_reference else None
@@ -1317,7 +1353,10 @@ def obtener_contexto(payload: ObtenerContextoRequest):
 
 
 @app.post("/crear-caso-desde-relato")
-def crear_caso_desde_relato(payload: CrearCasoDesdeRelatoRequest):
+def crear_caso_desde_relato(
+    payload: CrearCasoDesdeRelatoRequest,
+    current_user: dict = Depends(get_current_user)
+):
     try:
         aggressor_document = payload.aggressor_document.strip() if payload.aggressor_document else None
         aggressor_reference = payload.aggressor_reference.strip() if payload.aggressor_reference else None
@@ -1359,7 +1398,7 @@ def crear_caso_desde_relato(payload: CrearCasoDesdeRelatoRequest):
                 "status": "en_evaluacion",
                 "opening_channel": "denuncia_presencial",
                 "summary": "Caso generado desde relato",
-                "created_by": payload.created_by_user_id,
+                "created_by": current_user["id"],
             }
 
             insert_case = supabase.table("cases").insert(new_case).execute()
@@ -1410,7 +1449,7 @@ def crear_caso_desde_relato(payload: CrearCasoDesdeRelatoRequest):
             "incident_id": incident_id,
             "questionnaire_id": QUESTIONNAIRE_ID_DEFAULT,
             "narrative": payload.narrative,
-            "created_by_user_id": payload.created_by_user_id,
+            "created_by_user_id": current_user["id"],
         }
 
         extraction_result = extraer_y_guardar(NarrativeRequest(**extraction_payload))
@@ -1425,7 +1464,7 @@ def crear_caso_desde_relato(payload: CrearCasoDesdeRelatoRequest):
         evaluacion_payload = CrearEvaluacionRequest(
             case_id=case_id,
             ai_extraction_id=extraction_result["ai_extraction_id"],
-            performed_by_user_id=payload.created_by_user_id,
+            performed_by_user_id=current_user["id"],
             notes="Evaluación generada automáticamente",
         )
 
@@ -1461,7 +1500,10 @@ def crear_caso_desde_relato(payload: CrearCasoDesdeRelatoRequest):
 
 
 @app.get("/evaluacion/{assessment_id}/respuestas")
-def obtener_respuestas_evaluacion(assessment_id: str):
+def obtener_respuestas_evaluacion(
+    assessment_id: str,
+    current_user: dict = Depends(get_current_user)
+):
     try:
         assessment_resp = (
             supabase.table("risk_assessments")
@@ -1551,7 +1593,10 @@ def obtener_respuestas_evaluacion(assessment_id: str):
 
 
 @app.get("/evaluacion/{assessment_id}/preguntas-entrevista")
-def obtener_preguntas_entrevista(assessment_id: str) -> dict:
+def obtener_preguntas_entrevista(
+    assessment_id: str,
+    current_user: dict = Depends(get_current_user)
+) -> dict:
     """
     Devuelve preguntas sugeridas para entrevista basadas en respuestas 'unknown'.
     Excluye preguntas no operativas (ej: CONTEXTO_VG_26485).
@@ -1668,7 +1713,10 @@ def obtener_preguntas_entrevista(assessment_id: str) -> dict:
 
 
 @app.post("/revisar-respuesta")
-def revisar_respuesta(payload: RevisarRespuestaRequest):
+def revisar_respuesta(
+    payload: RevisarRespuestaRequest,
+    current_user: dict = Depends(get_current_user)
+):
     try:
         resp = (
             supabase.table("case_question_answers")
@@ -1758,7 +1806,10 @@ def revisar_respuesta(payload: RevisarRespuestaRequest):
 
 
 @app.post("/revisar-respuestas-lote")
-def revisar_respuestas_lote(payload: RevisarRespuestasLoteRequest):
+def revisar_respuestas_lote(
+    payload: RevisarRespuestasLoteRequest,
+    current_user: dict = Depends(get_current_user)
+):
     try:
         if not payload.answers:
             return {
@@ -1859,7 +1910,10 @@ def revisar_respuestas_lote(payload: RevisarRespuestasLoteRequest):
 
 
 @app.post("/recalcular-evaluacion")
-def recalcular_evaluacion(payload: RecalcularEvaluacionRequest):
+def recalcular_evaluacion(
+    payload: RecalcularEvaluacionRequest,
+    current_user: dict = Depends(get_current_user)
+):
     try:
         assessment_resp = (
             supabase.table("risk_assessments")
@@ -2052,7 +2106,10 @@ def recalcular_evaluacion(payload: RecalcularEvaluacionRequest):
         }
 
 @app.get("/evaluacion/{assessment_id}/medidas-sugeridas")
-def obtener_medidas_sugeridas(assessment_id: str):
+def obtener_medidas_sugeridas(
+    assessment_id: str,
+    current_user: dict = Depends(get_current_user)
+):
     try:
         resp = supabase.table("assessment_measure_suggestions") \
             .select("""
@@ -2100,7 +2157,10 @@ def revision():
         return f.read()
 
 @app.get("/evaluacion/{assessment_id}/derivacion")
-def obtener_derivacion(assessment_id: str):
+def obtener_derivacion(
+    assessment_id: str,
+    current_user: dict = Depends(get_current_user)
+):
     try:
         resp = (
             supabase.table("risk_assessments")
