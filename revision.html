@@ -819,7 +819,7 @@
       try {
         const res = await fetch(API + "/crear-caso-desde-relato", {
           method: "POST",
-          headers: {"Content-Type": "application/json"},
+          headers: await authHeaders(),
           body: JSON.stringify(body)
         });
 
@@ -868,7 +868,7 @@
       try {
         const res = await fetch(API + "/obtener-contexto", {
           method: "POST",
-          headers: {"Content-Type": "application/json"},
+          headers: await authHeaders(),
           body: JSON.stringify({
             victim_document: victimDocument,
             aggressor_document: aggressorDocument,
@@ -935,7 +935,9 @@
       preguntas.innerHTML = "<p>Cargando respuestas...</p>";
 
       try {
-        const res = await fetch(`${API}/evaluacion/${assessmentId}/respuestas`);
+        const res = await fetch(`${API}/evaluacion/${assessmentId}/respuestas`, {
+          headers: await authHeaders()
+        });
         const data = await res.json();
 
         if (!data.ok) {
@@ -1003,7 +1005,9 @@
       if (!assessmentId) return;
 
       try {
-        const res = await fetch(`${API}/evaluacion/${assessmentId}/preguntas-entrevista`);
+        const res = await fetch(`${API}/evaluacion/${assessmentId}/preguntas-entrevista`, {
+          headers: await authHeaders()
+        });
         const data = await res.json();
 
         if (!data.ok) {
@@ -1052,7 +1056,9 @@
       if (!assessmentId) return;
 
       try {
-        const res = await fetch(`${API}/evaluacion/${assessmentId}/medidas-sugeridas`);
+        const res = await fetch(`${API}/evaluacion/${assessmentId}/medidas-sugeridas`, {
+          headers: await authHeaders()
+        });
         const data = await res.json();
 
         if (!data.ok) {
@@ -1112,7 +1118,7 @@
       try {
         const res = await fetch(API + "/revisar-respuestas-lote", {
           method: "POST",
-          headers: {"Content-Type": "application/json"},
+          headers: await authHeaders(),
           body: JSON.stringify({
             assessment_id: assessmentId,
             answers: items
@@ -1159,7 +1165,7 @@
 
       const res = await fetch(API + "/recalcular-evaluacion", {
         method: "POST",
-        headers: {"Content-Type": "application/json"},
+        headers: await authHeaders(),
         body: JSON.stringify({ assessment_id: assessmentId })
       });
     
@@ -1385,4 +1391,17 @@
     }
     
     verificarSesion();
+  
+    async function authHeaders() {
+      const { data } = await supabaseClient.auth.getSession();
+    
+      if (!data.session) {
+        throw new Error("Sesión no iniciada");
+      }
+    
+      return {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${data.session.access_token}`
+      };
+    }  
   </script></body></html>
