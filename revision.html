@@ -1373,9 +1373,29 @@
       document.getElementById("loginScreen").style.display = "flex";
     }
     
-    function mostrarApp() {
+    async function mostrarApp() {
       document.getElementById("loginScreen").style.display = "none";
       document.getElementById("appScreen").style.display = "grid";
+
+      try {
+        const res = await fetch(API + "/me", {
+          headers: await authHeaders()
+        });
+
+        const data = await res.json();
+
+        if (data.ok) {
+          const user = data.user;
+
+          document.querySelector(".userbox strong").innerText =
+            user.full_name || user.email;
+
+          document.querySelector(".userbox small").innerText =
+            user.role || "";
+        }
+      } catch (e) {
+        console.error("Error cargando usuario:", e);
+      }
     }
     
     async function verificarSesion() {

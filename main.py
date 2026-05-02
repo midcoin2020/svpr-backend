@@ -2186,3 +2186,9 @@ def obtener_derivacion(
 
     except Exception as e:
         return {"ok": False, "error": str(e)}
+@app.get("/me")
+def get_me(current_user: dict = Depends(get_current_user)):
+    return {
+        "ok": True,
+        "user": current_user
+    }
