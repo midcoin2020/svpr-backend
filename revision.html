@@ -764,7 +764,14 @@
           </div>
         </div>
         <div id="revisionContent" class="collapsible-content">
-        <div class="tabs"><div class="tab active">Respuestas</div><div class="tab">Entrevista</div><div class="tab">Resultado final</div><div class="tab">Medidas sugeridas</div></div>
+        <div class="tabs"><div class="tab active">Respuestas</div><div class="tab">Entrevista</div><div class="tab">Resultado final</div><div class="tab">Medidas sugeridas</div><div id="adoptarMedidasBox" style="margin-top:18px;">
+  <b>Medidas de protección adoptadas</b>
+
+  <div id="medidasSugeridasAdoptar"></div>
+
+  <select id="medidaSelect"></select>
+  <button onclick="agregarMedida()">Agregar medida</button>
+</div></div>
         <div id="preguntas"></div>
         <div id="entrevistaBox" class="card" style="display:none; margin-top:18px; background:#f9fafb; box-shadow:none;"><h3 class="section-subtitle">Preguntas sugeridas para entrevista</h3><div id="preguntasEntrevista"></div></div>
         <div class="button-row"><button onclick="guardar()">Guardar revisión</button></div>

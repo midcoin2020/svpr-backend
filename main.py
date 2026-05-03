@@ -2192,3 +2192,44 @@ def get_me(current_user: dict = Depends(get_current_user)):
         "ok": True,
         "user": current_user
     }
+
+@app.post("/medidas/adoptadas")
+def crear_medida_adoptada(
+    payload: dict,
+    current_user: dict = Depends(get_current_user)
+):
+    try:
+        insert = {
+            "case_id": payload["case_id"],
+            "incident_id": payload["incident_id"],
+            "assessment_id": payload["assessment_id"],
+            "protection_measure_id": payload["protection_measure_id"],
+            "adopted_by_user_id": current_user["id"],
+            "notes": payload.get("notes")
+        }
+
+        resp = supabase.table("applied_measures").insert(insert).execute()
+
+        return {
+            "ok": True,
+            "data": resp.data
+        }
+
+    except Exception as e:
+        return {
+            "ok": False,
+            "error": str(e)
+        }
+
+@app.get("/medidas/catalogo")
+def obtener_catalogo_medidas(current_user: dict = Depends(get_current_user)):
+    resp = supabase.table("protection_measures") \
+        .select("id, name, category") \
+        .eq("active", True) \
+        .order("display_order") \
+        .execute()
+
+    return {
+        "ok": True,
+        "medidas": resp.data
+    }
