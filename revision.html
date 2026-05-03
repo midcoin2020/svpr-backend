@@ -810,6 +810,7 @@
     
     let assessmentId = null;
     let currentCaseId = null;
+    let currentIncidentId = null;
     let currentUser = null;
 
     async function crearCaso() {
@@ -840,6 +841,8 @@
 
         assessmentId = data.assessment_id;
         currentCaseId = data.case_id;
+        currentIncidentId = data.incident_id;
+        await cargarCatalogo();
         estado.innerText = "Evaluación creada";
 
         mostrarSemaforoPreliminar(data.risk_level_preliminar);
