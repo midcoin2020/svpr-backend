@@ -767,21 +767,13 @@
         <div class="tabs"><div class="tab active">Respuestas</div><div class="tab">Entrevista</div><div class="tab">Resultado final</div><div class="tab">Medidas sugeridas</div></div>
         <div id="preguntas"></div>
         <div id="entrevistaBox" class="card" style="display:none; margin-top:18px; background:#f9fafb; box-shadow:none;"><h3 class="section-subtitle">Preguntas sugeridas para entrevista</h3><div id="preguntasEntrevista"></div></div>
-        <div id="adoptarMedidasBox" class="card" style="margin-top:18px; background:#f9fafb; box-shadow:none;">
-          <h3 class="section-subtitle">Medidas de protección adoptadas</h3>
-          <div id="medidasSugeridasAdoptar"></div>
-          <div class="button-row">
-            <select id="medidaSelect"></select>
-            <button type="button" onclick="agregarMedida()">Agregar medida</button>
-          </div>
-        </div>
         <div class="button-row"><button onclick="guardar()">Guardar revisión</button></div>
         <div id="guardarEstado" class="save-status" aria-live="polite"></div>
       </div>
       </section>
 
       <section id="resultadoSection" class="card" style="display:none;">
-        <div id="resultadoVisual"><h2>Resultado final</h2><div class="risk-panel"><div class="metric-card"><small>Nivel de riesgo</small><div id="riesgoFinal" class="semaforo">-</div></div><div class="metric-card"><small>Score</small><strong id="scoreFinal">-</strong></div><div class="metric-card"><small>Estado del caso</small><strong id="estadoCaso">-</strong></div></div><div style="margin-top:18px;"><b>Riesgo · Motivos</b><div id="riskReasonsFinal" style="margin-top:8px;"></div></div><div id="medidasSugeridasBox" style="display:none; margin-top:18px;"><b>Medidas de protección sugeridas</b><div id="medidasSugeridasFinal" style="margin-top:8px;"></div></div><div class="button-row"><button type="button" class="secondary" onclick="mostrarRevision()">Mostrar revisión del operador</button><button onclick="toggleDebug()" class="dark">Ver detalle técnico</button></div></div>
+        <div id="resultadoVisual"><h2>Resultado final</h2><div class="risk-panel"><div class="metric-card"><small>Nivel de riesgo</small><div id="riesgoFinal" class="semaforo">-</div></div><div class="metric-card"><small>Score</small><strong id="scoreFinal">-</strong></div><div class="metric-card"><small>Estado del caso</small><strong id="estadoCaso">-</strong></div></div><div style="margin-top:18px;"><b>Riesgo · Motivos</b><div id="riskReasonsFinal" style="margin-top:8px;"></div></div><div id="medidasSugeridasBox" style="display:none; margin-top:18px;"><b>Medidas de protección sugeridas</b><div id="medidasSugeridasFinal" style="margin-top:8px;"></div></div><div id="medidasAdoptadasResultadoBox" class="card" style="display:none; margin-top:18px; background:#f9fafb; box-shadow:none;"><h3 class="section-subtitle">Medidas de protección adoptadas</h3><p class="interview-help">Podés seleccionar más de una medida (Ctrl/Cmd + click) y guardarlas.</p><select id="medidaSelectResultado" multiple size="6"></select><div class="button-row"><button type="button" onclick="guardarMedidasAdoptadas()">Guardar medidas adoptadas</button></div><div id="medidasAdoptadasEstado" class="save-status"></div><div id="medidasAdoptadasList" style="margin-top:10px;"></div></div><div class="button-row"><button type="button" class="secondary" onclick="mostrarRevision()">Mostrar revisión del operador</button><button onclick="toggleDebug()" class="dark">Ver detalle técnico</button></div></div>
         <pre id="resultado" style="display:none;"></pre><div class="scorebar-wrap"><div id="barraScore"></div></div>
         <div id="derivacionEpiBox" class="clinical-box" style="display:none;">
           <div class="clinical-header">
@@ -812,6 +804,7 @@
     let currentCaseId = null;
     let currentIncidentId = null;
     let currentUser = null;
+    let medidasAdoptadas = [];
 
     async function crearCaso() {
       const body = {
@@ -1188,6 +1181,7 @@
       }
     
       document.getElementById("resultadoSection").style.display = "block";
+      document.getElementById("medidasAdoptadasResultadoBox").style.display = "block";
       document.getElementById("evaluarActions").style.display = "none";
       document.getElementById("evaluacionFinalizada").style.display = "inline-block";
       document.getElementById("estado").innerText = "Informe final generado";
@@ -1231,6 +1225,8 @@
       if (data.risk_level === "alto") barra.style.background = "#f97316";
       else if (data.risk_level === "moderado") barra.style.background = "#eab308";
       else barra.style.background = "#16a34a";
+
+      renderMedidasAdoptadas();
     
       // ===============================
       // 🔥 BLOQUE CLÍNICO (CORRECTO)
@@ -1326,7 +1322,8 @@
 
       const data = await res.json();
 
-      const select = document.getElementById("medidaSelect");
+      const select = document.getElementById("medidaSelectResultado");
+      if (!select) return;
       select.innerHTML = "";
 
       data.medidas.forEach(m => {
@@ -1337,21 +1334,58 @@
       });
     }
 
-    async function agregarMedida() {
-      const medidaId = document.getElementById("medidaSelect").value;
+    function renderMedidasAdoptadas() {
+      const box = document.getElementById("medidasAdoptadasList");
+      if (!box) return;
+      if (!medidasAdoptadas.length) {
+        box.innerHTML = '<div class="context-empty">Sin medidas adoptadas registradas.</div>';
+        return;
+      }
+      box.innerHTML = medidasAdoptadas
+        .map(m => `<div class="measure-item"><strong>${m}</strong></div>`)
+        .join("");
+    }
 
-      await fetch(API + "/medidas/adoptadas", {
-        method: "POST",
-        headers: await authHeaders(),
-        body: JSON.stringify({
-          case_id: currentCaseId,
-          incident_id: currentIncidentId,
-          assessment_id: assessmentId,
-          protection_measure_id: medidaId
-        })
-      });
+    async function guardarMedidasAdoptadas() {
+      const select = document.getElementById("medidaSelectResultado");
+      const estado = document.getElementById("medidasAdoptadasEstado");
+      const seleccionadas = Array.from(select.selectedOptions || []);
 
-      alert("Medida registrada");
+      if (!seleccionadas.length) {
+        estado.className = "save-status error";
+        estado.innerText = "Seleccioná al menos una medida.";
+        return;
+      }
+
+      estado.className = "save-status";
+      estado.innerText = "Guardando medidas...";
+
+      try {
+        const headers = await authHeaders();
+        await Promise.all(seleccionadas.map(opt =>
+          fetch(API + "/medidas/adoptadas", {
+            method: "POST",
+            headers,
+            body: JSON.stringify({
+              case_id: currentCaseId,
+              incident_id: currentIncidentId,
+              assessment_id: assessmentId,
+              protection_measure_id: opt.value
+            })
+          })
+        ));
+
+        const existentes = new Set(medidasAdoptadas);
+        seleccionadas.forEach(opt => existentes.add(opt.innerText));
+        medidasAdoptadas = Array.from(existentes);
+        renderMedidasAdoptadas();
+
+        estado.className = "save-status ok";
+        estado.innerText = "Medidas adoptadas guardadas.";
+      } catch (err) {
+        estado.className = "save-status error";
+        estado.innerText = "Error al guardar medidas: " + err.message;
+      }
     }
 
     function formatDateOnly(value) {
