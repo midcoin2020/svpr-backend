@@ -230,6 +230,20 @@ La justificación debe:
 Respondé ahora.
 """
 
+HISTORIAL_ENABLED_CODES = {
+    "ACCESO_ARMA_FUEGO",
+    "HECHOS_ANTERIORES",
+    "ESCALADA_RECIENTE",
+    "VIOLENCIA_CRONICA",
+    "VIOLENCIA_PSICOLOGICA",
+    "CONTROL_DOMINIO",
+    "VULNERABILIDAD_FISICA",
+    "VULNERABILIDAD_PSICOLOGICA",
+    "BAJA_CAPACIDAD_AUTOCUIDADO",
+    "TEMOR_INTENSO_VICTIMA",
+    "CONTEXTO_VG_26485",
+}
+
 MEASURES_SUGGESTION_PROMPT = """
 Sos un asistente técnico de apoyo para sugerir medidas de protección en casos de violencia de género.
 
@@ -939,6 +953,89 @@ def limpiar_y_parsear_json(texto: str):
     return json.loads(texto)
 
 
+def construir_narrativa_historial_relacion(case_id: str, incident_id_actual: str) -> tuple[str, list[str]]:
+    incidents_resp = (
+        supabase.table("incidents")
+        .select("id, external_id, narrative, summary_ai, created_at")
+        .eq("case_id", case_id)
+        .neq("id", incident_id_actual)
+        .order("created_at", desc=True)
+        .limit(10)
+        .execute()
+    )
+
+    incidents = incidents_resp.data or []
+    if not incidents:
+        return "", []
+
+    bloques = []
+    referencias = []
+    for inc in incidents:
+        ext = inc.get("external_id") or inc.get("id")
+        referencias.append(ext)
+        texto = inc.get("narrative") or inc.get("summary_ai") or ""
+        if not texto:
+            continue
+        bloques.append(f"[Incidente {ext}] {texto}")
+
+    return "\n\n".join(bloques), referencias
+
+
+def extraer_overrides_desde_historial(payload: NarrativeRequest, preguntas: list[dict]) -> dict[str, dict]:
+    narrativa_historial, referencias = construir_narrativa_historial_relacion(payload.case_id, payload.incident_id)
+    if not narrativa_historial:
+        return {}
+
+    preguntas_historial = [p for p in preguntas if p.get("code") in HISTORIAL_ENABLED_CODES]
+    if not preguntas_historial:
+        return {}
+
+    contenido_usuario = {
+        "narrative": narrativa_historial,
+        "questions": preguntas_historial,
+        "instructions": (
+            "Respondé solo con evidencia del historial (no del hecho actual). "
+            "Usá true/false/unknown y en la justificación citá el identificador del incidente entre corchetes si está disponible."
+        ),
+    }
+
+    try:
+        response = client.responses.create(
+            model=OPENAI_MODEL,
+            input=[
+                {
+                    "role": "developer",
+                    "content": EXTRACTION_PROMPT_V2
+                    + "\n\nLa salida debe ser exclusivamente un array JSON válido. No uses markdown.",
+                },
+                {"role": "user", "content": json.dumps(contenido_usuario, ensure_ascii=False)},
+            ],
+        )
+        resultado = limpiar_y_parsear_json(response.output_text)
+    except Exception:
+        return {}
+
+    overrides: dict[str, dict] = {}
+    for item in resultado:
+        code = item.get("question_code")
+        if code not in HISTORIAL_ENABLED_CODES:
+            continue
+        if item.get("suggested_value") != "true":
+            continue
+
+        just = item.get("justification_text") or "Indicador detectado en antecedentes de la relación."
+        if referencias:
+            just = f"{just} (Antecedentes: {', '.join(referencias[:3])})"
+
+        overrides[code] = {
+            "suggested_value": "true",
+            "confidence_score": item.get("confidence_score", 0.7),
+            "justification_text": just,
+        }
+
+    return overrides
+
+
 def extraer_y_guardar(payload: NarrativeRequest):
     try:
         preguntas = obtener_preguntas_cuestionario(payload.questionnaire_id)
@@ -966,6 +1063,30 @@ def extraer_y_guardar(payload: NarrativeRequest):
 
         raw_output = response.output_text
         resultado = limpiar_y_parsear_json(raw_output)
+        overrides_historial = extraer_overrides_desde_historial(payload, preguntas)
+
+        if overrides_historial:
+            for item in resultado:
+                code = item.get("question_code")
+                if code not in HISTORIAL_ENABLED_CODES:
+                    continue
+
+                override = overrides_historial.get(code)
+                if not override:
+                    continue
+
+                if item.get("suggested_value") != "true":
+                    item["suggested_value"] = "true"
+                    item["confidence_score"] = max(
+                        float(item.get("confidence_score") or 0),
+                        float(override.get("confidence_score") or 0),
+                    )
+                    base_just = item.get("justification_text") or ""
+                    item["justification_text"] = (
+                        f"{base_just} | Historial: {override['justification_text']}"
+                        if base_just
+                        else f"Historial: {override['justification_text']}"
+                    )
 
         extraction_insert = {
             "case_id": payload.case_id,
