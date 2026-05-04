@@ -953,37 +953,105 @@ def limpiar_y_parsear_json(texto: str):
     return json.loads(texto)
 
 
-def construir_narrativa_historial_relacion(case_id: str, incident_id_actual: str) -> tuple[str, list[str]]:
-    incidents_resp = (
-        supabase.table("incidents")
-        .select("id, external_id, narrative, summary_ai, created_at")
+def construir_contexto_historial_supervisado(case_id: str, incident_id_actual: str) -> tuple[list[dict], list[str]]:
+    assessments_resp = (
+        supabase.table("risk_assessments")
+        .select("id, incident_id, ai_extraction_id, created_at")
         .eq("case_id", case_id)
-        .neq("id", incident_id_actual)
+        .neq("incident_id", incident_id_actual)
         .order("created_at", desc=True)
-        .limit(10)
+        .limit(6)
         .execute()
     )
 
-    incidents = incidents_resp.data or []
-    if not incidents:
-        return "", []
+    assessments = assessments_resp.data or []
+    if not assessments:
+        return [], []
 
-    bloques = []
-    referencias = []
-    for inc in incidents:
-        ext = inc.get("external_id") or inc.get("id")
-        referencias.append(ext)
-        texto = inc.get("narrative") or inc.get("summary_ai") or ""
-        if not texto:
+    assessment_ids = [a["id"] for a in assessments if a.get("id")]
+    incident_ids = [a["incident_id"] for a in assessments if a.get("incident_id")]
+    ai_extraction_ids = [a["ai_extraction_id"] for a in assessments if a.get("ai_extraction_id")]
+
+    incident_ext_map: dict[str, str] = {}
+    if incident_ids:
+        incidents_resp = (
+            supabase.table("incidents")
+            .select("id, external_id")
+            .in_("id", incident_ids)
+            .execute()
+        )
+        for inc in incidents_resp.data or []:
+            incident_ext_map[inc["id"]] = inc.get("external_id") or inc["id"]
+
+    answers_resp = (
+        supabase.table("case_question_answers")
+        .select("assessment_id, question_id, final_value, operator_confirmed, comments")
+        .in_("assessment_id", assessment_ids)
+        .eq("operator_confirmed", True)
+        .execute()
+    )
+    answers = answers_resp.data or []
+
+    question_ids = list({a["question_id"] for a in answers if a.get("question_id")})
+    questions_map: dict[str, str] = {}
+    if question_ids:
+        questions_resp = (
+            supabase.table("questionnaire_questions")
+            .select("id, code")
+            .in_("id", question_ids)
+            .execute()
+        )
+        questions_map = {q["id"]: q["code"] for q in (questions_resp.data or [])}
+
+    just_map: dict[tuple[str, str], str] = {}
+    if ai_extraction_ids:
+        just_resp = (
+            supabase.table("ai_extracted_answers")
+            .select("ai_extraction_id, question_id, justification_text")
+            .in_("ai_extraction_id", ai_extraction_ids)
+            .execute()
+        )
+        for j in just_resp.data or []:
+            just_map[(j["ai_extraction_id"], j["question_id"])] = j.get("justification_text") or ""
+
+    assessment_meta = {a["id"]: a for a in assessments}
+
+    historial_items: list[dict] = []
+    referencias: list[str] = []
+    for ans in answers:
+        assessment_id = ans.get("assessment_id")
+        meta = assessment_meta.get(assessment_id)
+        if not meta:
             continue
-        bloques.append(f"[Incidente {ext}] {texto}")
 
-    return "\n\n".join(bloques), referencias
+        code = questions_map.get(ans.get("question_id"))
+        if not code or code not in HISTORIAL_ENABLED_CODES:
+            continue
+
+        incident_id = meta.get("incident_id")
+        expediente_ref = incident_ext_map.get(incident_id, incident_id)
+        if expediente_ref and expediente_ref not in referencias:
+            referencias.append(expediente_ref)
+
+        ai_just = just_map.get((meta.get("ai_extraction_id"), ans.get("question_id")), "")
+
+        historial_items.append(
+            {
+                "question_code": code,
+                "final_value": ans.get("final_value"),
+                "comments": ans.get("comments") or "",
+                "ai_justification": ai_just,
+                "incident_ref": expediente_ref,
+                "assessment_id": assessment_id,
+            }
+        )
+
+    return historial_items, referencias
 
 
 def extraer_overrides_desde_historial(payload: NarrativeRequest, preguntas: list[dict]) -> dict[str, dict]:
-    narrativa_historial, referencias = construir_narrativa_historial_relacion(payload.case_id, payload.incident_id)
-    if not narrativa_historial:
+    historial_items, referencias = construir_contexto_historial_supervisado(payload.case_id, payload.incident_id)
+    if not historial_items:
         return {}
 
     preguntas_historial = [p for p in preguntas if p.get("code") in HISTORIAL_ENABLED_CODES]
@@ -991,11 +1059,13 @@ def extraer_overrides_desde_historial(payload: NarrativeRequest, preguntas: list
         return {}
 
     contenido_usuario = {
-        "narrative": narrativa_historial,
+        "historial_revisado": historial_items,
         "questions": preguntas_historial,
         "instructions": (
-            "Respondé solo con evidencia del historial (no del hecho actual). "
-            "Usá true/false/unknown y en la justificación citá el identificador del incidente entre corchetes si está disponible."
+            "Respondé solo con evidencia del historial revisado por operador. "
+            "No uses narrativas previas completas. "
+            "Podés apoyarte en final_value, comentarios del operador y justificación IA previa. "
+            "Usá true/false/unknown y citá el incidente de referencia."
         ),
     }
 

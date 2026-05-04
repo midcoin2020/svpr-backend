@@ -524,6 +524,27 @@
         margin-top: 8px;
       }
 
+      .badge-source {
+        display: inline-block;
+        font-size: 11px;
+        font-weight: 900;
+        letter-spacing: 0.04em;
+        border-radius: 999px;
+        padding: 5px 9px;
+        margin: 8px 0 2px;
+        text-transform: uppercase;
+      }
+
+      .badge-source-historial {
+        background: #dbeafe;
+        color: #1e40af;
+      }
+
+      .badge-source-actual {
+        background: #dcfce7;
+        color: #166534;
+      }
+
       .context-empty {
         color: var(--muted);
         font-size: 14px;
@@ -957,6 +978,10 @@
 
         for (const item of data.answers || []) {
           const div = document.createElement("div");
+          const justificacion = String(item.ai_justification_text || "");
+          const esHistorial = justificacion.includes("Historial:");
+          const matchExpediente = justificacion.match(/P-\d+\/\d+/i);
+          const expedienteRef = matchExpediente ? matchExpediente[0] : null;
 
           // 🔥 ESTA ES LA LÍNEA QUE TE FALTABA
           const valorInicial = item.final_value && item.final_value !== ""
@@ -973,6 +998,12 @@
             <strong>${item.question_text}</strong>
             <p><b>IA:</b> ${mapValor(item.ai_suggested_value)}</p>
             <p><b>Justificación:</b> ${item.ai_justification_text || "-"}</p>
+
+            <div class="badge-source ${esHistorial ? "badge-source-historial" : "badge-source-actual"}">
+              ${esHistorial
+                ? `Fuente: Historial${expedienteRef ? ` · ${expedienteRef}` : ""}`
+                : "Fuente: Hecho actual"}
+            </div>
 
             ${valorInicial === "unknown"
               ? '<div class="badge-unknown">Requiere indagación en entrevista</div>'
