@@ -1315,6 +1315,29 @@ def obtener_contexto(
                 relationship_incidents_resp = incidents_query.execute()
                 relationship_incidents = relationship_incidents_resp.data or []
 
+        incident_ids = [inc["id"] for inc in relationship_incidents if inc.get("id")]
+        medidas_por_incidente: dict[str, list[str]] = {}
+
+        if incident_ids:
+            medidas_resp = (
+                supabase.table("applied_measures")
+                .select("incident_id, protection_measures(name)")
+                .in_("incident_id", incident_ids)
+                .execute()
+            )
+
+            for row in medidas_resp.data or []:
+                incident_id = row.get("incident_id")
+                measure_obj = row.get("protection_measures") or {}
+                measure_name = measure_obj.get("name")
+
+                if not incident_id or not measure_name:
+                    continue
+
+                medidas_por_incidente.setdefault(incident_id, [])
+                if measure_name not in medidas_por_incidente[incident_id]:
+                    medidas_por_incidente[incident_id].append(measure_name)
+
         relationship_incidents_brief = [
             {
                 "id": inc["id"],
@@ -1323,6 +1346,7 @@ def obtener_contexto(
                 "summary_ai": inc.get("summary_ai"),
                 "created_at": inc.get("created_at"),
                 "current_risk_level": latest_relationship_risk,
+                "applied_measures": medidas_por_incidente.get(inc["id"], []),
             }
             for inc in relationship_incidents[:5]
         ]
