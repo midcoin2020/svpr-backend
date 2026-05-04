@@ -903,11 +903,15 @@
           data.relationship_context.incidents.forEach(item => {
             const div = document.createElement("div");
             div.className = "context-item";
+            const appliedMeasures = Array.isArray(item.applied_measures) && item.applied_measures.length
+              ? item.applied_measures.join(" | ")
+              : "Sin medidas registradas";
             div.innerHTML = `
               <div><b>Expediente:</b> ${item.incident_external_id || "-"}</div>
               <div><b>Fecha:</b> ${formatDateOnly(item.created_at)}</div>
               <div><b>Riesgo:</b> ${item.current_risk_level || "-"}</div>
               <div><b>Resumen:</b> ${item.summary_ai || "-"}</div>
+              <div><b>Medidas adoptadas:</b> ${appliedMeasures}</div>
             `;
             relationshipList.appendChild(div);
           });
