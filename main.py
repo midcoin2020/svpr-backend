@@ -168,8 +168,11 @@ Incluye expresiones como "me voy a matar", "si me dejás me mato", "nos vamos a 
 Puede surgir del hecho actual o del historial supervisado.
 
 19. SEPARACION_RECIENTE
-Marcar "true" si existe separación reciente, intento de separación, decisión de finalizar la relación, abandono del hogar, exclusión, ruptura conflictiva, o conflicto asociado a la pérdida de control sobre la víctima.
-Incluye situaciones en las que la víctima intenta terminar la relación aunque la separación aún no se haya concretado.
+Marcar "true" si la separación, intento de separación o conflicto 
+por pérdida de control ocurrió en los últimos 12 meses, o si el 
+relato lo describe como reciente o en curso. Si la separación es 
+claramente anterior a ese período y no hay conflicto activo 
+asociado, marcar "unknown".
 
 --------------------------------------------------
 PREGUNTA DE CONTEXTO JURÍDICO
