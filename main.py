@@ -505,15 +505,17 @@ def obtener_motivos_riesgo(score_total: float, respuestas: list[dict]) -> tuple[
 
 
     if es_true("ACCESO_ARMA_FUEGO") and (
-        es_true("AMENAZAS")
-        or es_true("ESCALADA_RECIENTE")
-        or es_true("VIOLENCIA_FISICA")
+        (es_true("AMENAZAS") and es_true("ESCALADA_RECIENTE"))
+        or (es_true("AMENAZAS") and es_true("VIOLENCIA_FISICA"))
+        or (es_true("ESCALADA_RECIENTE") and es_true("VIOLENCIA_FISICA"))
     ):
         motivos_alto.append(
-            "Acceso a arma de fuego combinado con amenazas, escalada o violencia física"
+            "Acceso a arma de fuego con múltiples indicadores de riesgo asociados"
         )
 
-    if es_true("AMENAZAS") and es_true("ESCALADA_RECIENTE") and es_true("HECHOS_ANTERIORES"):
+
+    if es_true("AMENAZAS") and es_true("ESCALADA_RECIENTE") and es_true("HECHOS_ANTERIORES") \
+        and not es_true("ACCESO_ARMA_FUEGO"):
         motivos_alto.append("Amenazas en contexto de escalada y antecedentes de violencia")
 
     if es_true("VIOLENCIA_FISICA") and es_true("ESCALADA_RECIENTE") and es_true("HECHOS_ANTERIORES"):
@@ -522,19 +524,12 @@ def obtener_motivos_riesgo(score_total: float, respuestas: list[dict]) -> tuple[
     if es_true("SEPARACION_RECIENTE") and (
         es_true("AMENAZAS")
         or es_true("VIOLENCIA_FISICA")
-        or es_true("VIOLENCIA_FISICA_GRAVE")
         or es_true("CONTROL_DOMINIO")
         or es_true("ACCESO_ARMA_FUEGO")
-        or es_true("IDEACION_SUICIDA_AGRESOR")
-    ):
-        motivos_alto.append("Separación reciente o intento de separación con indicadores asociados de riesgo")
-
-    if es_true("BAJA_CAPACIDAD_AUTOCUIDADO") and (
-        es_true("VIOLENCIA_FISICA")
-        or (es_true("AMENAZAS") and es_true("ESCALADA_RECIENTE"))
+        or es_true("INCUMPLIMIENTO_MEDIDAS_PREVIAS")
     ):
         motivos_alto.append(
-            "Alta vulnerabilidad de la víctima en contexto de violencia o amenazas agravadas"
+            "Separación reciente o intento de separación con indicadores asociados de riesgo"
         )
 
     if motivos_alto:
@@ -543,43 +538,47 @@ def obtener_motivos_riesgo(score_total: float, respuestas: list[dict]) -> tuple[
 
     motivos_moderado: list[str] = []
 
-    if score_total >= 12:
+    # Score acumulado como red de seguridad
+    if score_total >= 10:
         motivos_moderado.append(f"Score acumulado relevante ({score_total})")
 
+    # Señal procesal específica
     if es_true("INCUMPLIMIENTO_MEDIDAS_PREVIAS"):
         motivos_moderado.append("Incumplimiento previo de medidas de protección")
 
+    # Contexto del agresor
     if es_true("CONSUMO_PROBLEMATICO_AGRESOR") and (
-        es_true("AMENAZAS")
-        or es_true("VIOLENCIA_FISICA")
-        or es_true("VIOLENCIA_PSICOLOGICA")
+        es_true("VIOLENCIA_FISICA")
         or es_true("ESCALADA_RECIENTE")
     ):
-        motivos_moderado.append("Consumo problemático del agresor asociado a indicadores de violencia o escalada")
+        motivos_moderado.append(
+            "Consumo problemático del agresor asociado a violencia o escalada"
+        )
 
+    # Separación sin indicadores graves (con indicadores ya activó alto)
     if es_true("SEPARACION_RECIENTE"):
         motivos_moderado.append("Separación reciente o intento de separación")
 
+    # Violencia directa con agravantes
     if es_true("VIOLENCIA_FISICA") and (
-        es_true("HECHOS_ANTERIORES")
-        or es_true("ESCALADA_RECIENTE")
+        es_true("ESCALADA_RECIENTE")
         or es_true("TEMOR_INTENSO_VICTIMA")
         or es_true("VULNERABILIDAD_FISICA")
         or es_true("VULNERABILIDAD_PSICOLOGICA")
+        or es_true("BAJA_CAPACIDAD_AUTOCUIDADO")
     ):
         motivos_moderado.append("Violencia física con indicadores de agravamiento")
 
     if es_true("AMENAZAS") and (
         es_true("ESCALADA_RECIENTE")
-        or es_true("HECHOS_ANTERIORES")
         or es_true("TEMOR_INTENSO_VICTIMA")
     ):
         motivos_moderado.append("Amenazas en contexto de agravamiento")
 
+    # Dinámica relacional
     if es_true("VIOLENCIA_PSICOLOGICA") and (
         es_true("CONTROL_DOMINIO")
         or es_true("ESCALADA_RECIENTE")
-        or es_true("HECHOS_ANTERIORES")
     ):
         motivos_moderado.append("Violencia psicológica relevante")
 
@@ -589,6 +588,7 @@ def obtener_motivos_riesgo(score_total: float, respuestas: list[dict]) -> tuple[
     ):
         motivos_moderado.append("Control o dominación con indicadores de riesgo")
 
+    # Vulnerabilidad
     if es_true("VULNERABILIDAD_FISICA") and (
         es_true("VIOLENCIA_FISICA")
         or es_true("AMENAZAS")
@@ -599,8 +599,11 @@ def obtener_motivos_riesgo(score_total: float, respuestas: list[dict]) -> tuple[
         es_true("VIOLENCIA_PSICOLOGICA")
         or es_true("AMENAZAS")
     ):
-        motivos_moderado.append("Vulnerabilidad psicológica en contexto de violencia o amenazas")
+        motivos_moderado.append(
+            "Vulnerabilidad psicológica en contexto de violencia o amenazas"
+        )
 
+    # Percepción de riesgo
     if es_true("TEMOR_INTENSO_VICTIMA") and (
         es_true("AMENAZAS")
         or es_true("CONTROL_DOMINIO")
