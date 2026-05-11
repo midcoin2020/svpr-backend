@@ -294,6 +294,7 @@ CRITERIOS:
 - Si hay violencia física o amenazas, priorizar medidas de restricción.
 - Si hay armas o riesgo especialmente alto, considerar monitoreo o neutralización de riesgo.
 - Si hay vulnerabilidad o baja capacidad de autocuidado, considerar medidas asistenciales.
+- Sugerir "Exclusión del hogar" solo si del relato surge convivencia actual entre víctima y agresor en el mismo domicilio.
 - Evitar redundancias.
 - Máximo 3 medidas.
 
