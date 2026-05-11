@@ -153,11 +153,29 @@ Marcar "true" si el relato permite inferir claramente que la víctima tiene difi
 Marcar "true" si la víctima expresa miedo intenso, terror, temor serio o percepción clara de peligro.
 No alcanza con simple molestia o incomodidad.
 
+16. INCUMPLIMIENTO_MEDIDAS_PREVIAS
+Marcar "true" si surge que el agresor incumplió medidas de protección previamente adoptadas, como prohibición de acercamiento, prohibición de contacto, exclusión del hogar u otra orden judicial relevante.
+También puede marcarse "true" si surge del historial supervisado del caso.
+No marcar "true" por la sola existencia de medidas previas si no hay dato de incumplimiento.
+
+17. CONSUMO_PROBLEMATICO_AGRESOR
+Marcar "true" si surge consumo problemático, persistente o relevante de alcohol o sustancias por parte del agresor, especialmente si aparece asociado a agresividad, pérdida de control, amenazas, violencia o imprevisibilidad.
+No marcar "true" por una mención aislada o ambigua de consumo sin relevancia para el riesgo.
+
+18. IDEACION_SUICIDA_AGRESOR
+Marcar "true" si el agresor manifestó ideación suicida, amenazas de suicidio, intentos previos de suicidio o frases autodestructivas.
+Incluye expresiones como "me voy a matar", "si me dejás me mato", "nos vamos a morir todos" u otras compatibles con riesgo femicidio-suicidio.
+Puede surgir del hecho actual o del historial supervisado.
+
+19. SEPARACION_RECIENTE
+Marcar "true" si existe separación reciente, intento de separación, decisión de finalizar la relación, abandono del hogar, exclusión, ruptura conflictiva, o conflicto asociado a la pérdida de control sobre la víctima.
+Incluye situaciones en las que la víctima intenta terminar la relación aunque la separación aún no se haya concretado.
+
 --------------------------------------------------
 PREGUNTA DE CONTEXTO JURÍDICO
 --------------------------------------------------
 
-16. CONTEXTO_VG_26485
+20. CONTEXTO_VG_26485
 
 Esta pregunta NO mide riesgo. Evalúa si el relato aparece prima facie enmarcado en un contexto de violencia contra las mujeres, según la Ley 26.485.
 
@@ -242,6 +260,11 @@ HISTORIAL_ENABLED_CODES = {
     "BAJA_CAPACIDAD_AUTOCUIDADO",
     "TEMOR_INTENSO_VICTIMA",
     "CONTEXTO_VG_26485",
+
+    "INCUMPLIMIENTO_MEDIDAS_PREVIAS",
+    "CONSUMO_PROBLEMATICO_AGRESOR",
+    "IDEACION_SUICIDA_AGRESOR",
+    "SEPARACION_RECIENTE",
 }
 
 MEASURES_SUGGESTION_PROMPT = """
@@ -477,6 +500,9 @@ def obtener_motivos_riesgo(score_total: float, respuestas: list[dict]) -> tuple[
     if es_true("VIOLENCIA_FISICA_GRAVE"):
         motivos_alto.append("Violencia física grave")
 
+    if es_true("IDEACION_SUICIDA_AGRESOR"):
+        motivos_alto.append("Ideación, amenaza o antecedente suicida del agresor")
+
 
     if es_true("ACCESO_ARMA_FUEGO") and (
         es_true("AMENAZAS")
@@ -492,6 +518,16 @@ def obtener_motivos_riesgo(score_total: float, respuestas: list[dict]) -> tuple[
 
     if es_true("VIOLENCIA_FISICA") and es_true("ESCALADA_RECIENTE") and es_true("HECHOS_ANTERIORES"):
         motivos_alto.append("Violencia física con escalada reciente y antecedentes")
+
+    if es_true("SEPARACION_RECIENTE") and (
+        es_true("AMENAZAS")
+        or es_true("VIOLENCIA_FISICA")
+        or es_true("VIOLENCIA_FISICA_GRAVE")
+        or es_true("CONTROL_DOMINIO")
+        or es_true("ACCESO_ARMA_FUEGO")
+        or es_true("IDEACION_SUICIDA_AGRESOR")
+    ):
+        motivos_alto.append("Separación reciente o intento de separación con indicadores asociados de riesgo")
 
     if es_true("BAJA_CAPACIDAD_AUTOCUIDADO") and (
         es_true("VIOLENCIA_FISICA")
@@ -509,6 +545,20 @@ def obtener_motivos_riesgo(score_total: float, respuestas: list[dict]) -> tuple[
 
     if score_total >= 6:
         motivos_moderado.append(f"Score acumulado relevante ({score_total})")
+
+    if es_true("INCUMPLIMIENTO_MEDIDAS_PREVIAS"):
+        motivos_moderado.append("Incumplimiento previo de medidas de protección")
+
+    if es_true("CONSUMO_PROBLEMATICO_AGRESOR") and (
+        es_true("AMENAZAS")
+        or es_true("VIOLENCIA_FISICA")
+        or es_true("VIOLENCIA_PSICOLOGICA")
+        or es_true("ESCALADA_RECIENTE")
+    ):
+        motivos_moderado.append("Consumo problemático del agresor asociado a indicadores de violencia o escalada")
+
+    if es_true("SEPARACION_RECIENTE"):
+        motivos_moderado.append("Separación reciente o intento de separación")
 
     if es_true("VIOLENCIA_FISICA") and (
         es_true("HECHOS_ANTERIORES")
@@ -1881,6 +1931,10 @@ def obtener_preguntas_entrevista(
             "HECHOS_ANTERIORES",
             "TEMOR_INTENSO_VICTIMA",
             "BAJA_CAPACIDAD_AUTOCUIDADO",
+            "INCUMPLIMIENTO_MEDIDAS_PREVIAS",
+            "CONSUMO_PROBLEMATICO_AGRESOR",
+            "IDEACION_SUICIDA_AGRESOR",
+            "SEPARACION_RECIENTE",
         }
 
         # ---------------------------
