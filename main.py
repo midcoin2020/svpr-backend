@@ -613,60 +613,29 @@ def obtener_motivos_riesgo(score_total: float, respuestas: list[dict]) -> tuple[
 
     return "bajo", ["Sin indicadores relevantes suficientes en esta valoración preliminar"]
 
-def obtener_derivacion_epi(respuestas: list[dict]) -> dict:
-    resp = {r["code"]: r["suggested_value"] for r in respuestas}
+def obtener_derivacion_epi(risk_level: str) -> dict:
 
-    def es_true(code: str) -> bool:
-        return resp.get(code) == "true"
-
-    motivos = []
-
-    # 🔴 OBLIGATORIA
-    if (
-        es_true("VULNERABILIDAD_FISICA") or
-        es_true("VULNERABILIDAD_PSICOLOGICA") or
-        es_true("BAJA_CAPACIDAD_AUTOCUIDADO") or
-        es_true("TEMOR_INTENSO_VICTIMA")
-    ):
-        if es_true("VULNERABILIDAD_FISICA"):
-            motivos.append("Vulnerabilidad física relevante")
-        if es_true("VULNERABILIDAD_PSICOLOGICA"):
-            motivos.append("Vulnerabilidad psicológica")
-        if es_true("BAJA_CAPACIDAD_AUTOCUIDADO"):
-            motivos.append("Baja capacidad de autocuidado")
-        if es_true("TEMOR_INTENSO_VICTIMA"):
-            motivos.append("Temor intenso de la víctima")
-
+    if risk_level == "alto":
         return {
             "nivel": "obligatoria",
-            "motivos": motivos
+            "motivos": [
+                "El nivel de riesgo final del caso requiere intervención interdisciplinaria obligatoria."
+            ]
         }
 
-    # 🟠 RECOMENDADA
-    if (
-        (es_true("VIOLENCIA_FISICA") and es_true("TEMOR_INTENSO_VICTIMA")) or
-        (es_true("VIOLENCIA_PSICOLOGICA") and es_true("CONTROL_DOMINIO")) or
-        es_true("VIOLENCIA_CRONICA") or
-        es_true("HECHOS_ANTERIORES")
-    ):
-        if es_true("VIOLENCIA_FISICA") and es_true("TEMOR_INTENSO_VICTIMA"):
-            motivos.append("Violencia física con temor intenso")
-        if es_true("VIOLENCIA_PSICOLOGICA") and es_true("CONTROL_DOMINIO"):
-            motivos.append("Violencia psicológica con control/dominio")
-        if es_true("VIOLENCIA_CRONICA"):
-            motivos.append("Violencia persistente en el tiempo")
-        if es_true("HECHOS_ANTERIORES"):
-            motivos.append("Antecedentes de violencia")
-
+    if risk_level == "moderado":
         return {
             "nivel": "recomendada",
-            "motivos": motivos
+            "motivos": [
+                "El nivel de riesgo final del caso sugiere intervención interdisciplinaria."
+            ]
         }
 
-    # 🟡 CRITERIO
     return {
         "nivel": "criterio",
-        "motivos": ["Sin indicadores clínicos suficientes"]
+        "motivos": [
+            "La derivación interdisciplinaria queda a criterio del operador o del equipo."
+        ]
     }
 
 def generar_justificacion_derivacion_epi_con_ia(
@@ -1394,7 +1363,7 @@ def crear_evaluacion_desde_extraccion(payload: CrearEvaluacionRequest):
             categoria_dominante = max(score_por_categoria, key=score_por_categoria.get)
 
         risk_level, risk_reasons = obtener_motivos_riesgo(score_total, respuestas_para_clasificar)
-        derivacion = obtener_derivacion_epi(respuestas_para_clasificar)
+        derivacion = obtener_derivacion_epi(risk_level)
         risk_notes = "Motivos de riesgo preliminar: " + "; ".join(risk_reasons)
 
         assessment_insert = {
@@ -2291,7 +2260,7 @@ def recalcular_evaluacion(
             categoria_dominante = max(score_por_categoria, key=score_por_categoria.get)
 
         risk_level, risk_reasons = obtener_motivos_riesgo(score_total, respuestas_para_clasificar)
-        derivacion = obtener_derivacion_epi(respuestas_para_clasificar)
+        derivacion = obtener_derivacion_epi(risk_level)
         justificacion_derivacion = generar_justificacion_derivacion_epi_con_ia(
             nivel=derivacion["nivel"],
             motivos=derivacion["motivos"],
