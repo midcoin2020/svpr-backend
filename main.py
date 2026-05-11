@@ -543,7 +543,7 @@ def obtener_motivos_riesgo(score_total: float, respuestas: list[dict]) -> tuple[
 
     motivos_moderado: list[str] = []
 
-    if score_total >= 6:
+    if score_total >= 12:
         motivos_moderado.append(f"Score acumulado relevante ({score_total})")
 
     if es_true("INCUMPLIMIENTO_MEDIDAS_PREVIAS"):
