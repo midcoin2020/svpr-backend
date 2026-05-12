@@ -126,10 +126,37 @@ No inferirlo por agresividad general.
 No inferirlo solo porque hubo amenaza ambigua.
 
 7. HECHOS_ANTERIORES
-Marcar "true" si el relato menciona episodios previos de violencia, aunque no hayan sido denunciados.
+Marcar "true" solo si el relato menciona de manera clara y expresa episodios previos de violencia ejercidos por el mismo agresor contra la misma víctima.
+
+Los hechos anteriores deben surgir directamente del relato y no inferirse a partir de referencias ambiguas, indicadores indirectos, antecedentes genéricos o conflictos con terceras personas.
+
+No marcar "true" si:
+
+solo hay referencias vagas como “siempre fue conflictivo”;
+la violencia mencionada fue contra otras personas;
+el antecedente requiere interpretación;
+el relato describe únicamente el hecho actual sin referencias claras a episodios previos.
 
 8. ESCALADA_RECIENTE
-Marcar "true" si el texto indica aumento reciente de frecuencia, intensidad, agresividad o gravedad.
+Marcar "true" solo si del relato surge claramente:
+
+la existencia de hechos previos de violencia contra la misma víctima; y
+que los episodios más recientes presentan un aumento de intensidad, agresividad, frecuencia, gravedad o peligrosidad respecto de los anteriores.
+
+La escalada debe surgir expresamente del relato y no inferirse únicamente por la gravedad del hecho actual.
+
+No marcar "true" si:
+
+solo existe un hecho aislado;
+no hay comparación clara entre hechos anteriores y posteriores;
+los antecedentes no involucran a la misma víctima;
+el aumento de violencia requiere interpretación del evaluador.
+
+Ejemplos compatibles:
+
+“antes la insultaba y ahora la golpea”;
+“las agresiones son cada vez más violentas”;
+“primero eran amenazas y luego comenzó a golpearla”.
 
 9. VIOLENCIA_CRONICA
 Marcar "true" si el relato muestra repetición sostenida o persistencia en el tiempo.
@@ -168,11 +195,21 @@ Incluye expresiones como "me voy a matar", "si me dejás me mato", "nos vamos a 
 Puede surgir del hecho actual o del historial supervisado.
 
 19. SEPARACION_RECIENTE
-Marcar "true" si la separación, intento de separación o conflicto 
-por pérdida de control ocurrió en los últimos 12 meses, o si el 
-relato lo describe como reciente o en curso. Si la separación es 
-claramente anterior a ese período y no hay conflicto activo 
-asociado, marcar "unknown".
+Marcar "true" solo si surge claramente del relato que:
+
+hubo separación, intento de separación o conflicto actual por pérdida de control de la relación; y
+ese proceso ocurrió en los últimos 12 meses o es descrito como reciente, actual o todavía en curso.
+
+La separación debe surgir de manera expresa del relato y no inferirse indirectamente.
+
+No marcar "true" si:
+
+la separación aparece como antigua o remota;
+no existe referencia temporal suficiente;
+no hay conflicto relacional actual asociado;
+el dato requiere interpretación contextual.
+
+Si la separación es claramente anterior a los últimos 12 meses y no hay conflicto activo asociado, marcar "unknown".
 
 --------------------------------------------------
 PREGUNTA DE CONTEXTO JURÍDICO
