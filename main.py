@@ -126,40 +126,88 @@ No inferirlo por agresividad general.
 No inferirlo solo porque hubo amenaza ambigua.
 
 7. HECHOS_ANTERIORES
-Marcar "true" solo si el relato menciona de manera clara y expresa episodios previos de violencia ejercidos por el mismo agresor contra la misma víctima.
+Marcar "true" solo si el relato describe de manera expresa hechos previos de violencia ejercidos por el mismo agresor contra la misma víctima.
 
-Los hechos anteriores deben surgir directamente del relato y no inferirse a partir de referencias ambiguas, indicadores indirectos, antecedentes genéricos o conflictos con terceras personas.
+Los hechos anteriores deben consistir en conductas concretas de violencia (física, psicológica, amenazas, control, agresiones u otras formas de maltrato) claramente relatadas.
 
 No marcar "true" si:
 
-solo hay referencias vagas como “siempre fue conflictivo”;
-la violencia mencionada fue contra otras personas;
+solo se mencionan “problemas”, “discusiones”, “conflictos”, “mala relación” o expresiones ambiguas;
+la violencia fue dirigida a terceras personas;
 el antecedente requiere interpretación;
-el relato describe únicamente el hecho actual sin referencias claras a episodios previos.
+únicamente existe el hecho actual;
+la conclusión surge por contexto y no por una referencia explícita a violencia previa.
+
+Ejemplos que NO habilitan "true":
+
+“tenían problemas desde septiembre”;
+“era conflictivo”;
+“discutían seguido”;
+agresiones contra familiares, vecinos o terceros.
 
 8. ESCALADA_RECIENTE
-Marcar "true" solo si del relato surge claramente:
+Marcar "true" solo si el relato describe expresamente:
 
-la existencia de hechos previos de violencia contra la misma víctima; y
-que los episodios más recientes presentan un aumento de intensidad, agresividad, frecuencia, gravedad o peligrosidad respecto de los anteriores.
+hechos previos de violencia contra la misma víctima; y
+un aumento concreto y comparativo de intensidad, gravedad, frecuencia o peligrosidad.
 
-La escalada debe surgir expresamente del relato y no inferirse únicamente por la gravedad del hecho actual.
+La escalada debe surgir claramente del texto mediante comparación entre episodios anteriores y recientes.
+
+No inferir escalada por:
+
+la gravedad del hecho actual;
+la mera existencia de antecedentes;
+continuidad temporal;
+percepción subjetiva del evaluador.
 
 No marcar "true" si:
 
-solo existe un hecho aislado;
-no hay comparación clara entre hechos anteriores y posteriores;
-los antecedentes no involucran a la misma víctima;
-el aumento de violencia requiere interpretación del evaluador.
+hay un único episodio;
+los antecedentes son ambiguos;
+no existe comparación concreta entre episodios;
+los hechos previos involucran a terceras personas.
 
 Ejemplos compatibles:
 
 “antes la insultaba y ahora la golpea”;
-“las agresiones son cada vez más violentas”;
-“primero eran amenazas y luego comenzó a golpearla”.
+“las agresiones fueron cada vez más violentas”.
+
+Ejemplos NO compatibles:
+
+“venían teniendo problemas”;
+“la situación empeoró” sin descripción concreta;
+“siempre discutían”.
 
 9. VIOLENCIA_CRONICA
-Marcar "true" si el relato muestra repetición sostenida o persistencia en el tiempo.
+Marcar "true" solo si el relato muestra de manera clara una repetición sostenida de hechos de violencia contra la misma víctima a lo largo del tiempo.
+
+La persistencia debe surgir de referencias expresas a reiteración, continuidad o multiplicidad de episodios violentos.
+
+No inferir cronicidad por:
+
+una única agresión;
+conflictos de pareja genéricos;
+referencias ambiguas a “problemas” o “discusiones”;
+mera duración de la relación;
+continuidad temporal sin descripción de violencia reiterada.
+
+No marcar "true" si:
+
+el relato no identifica episodios reiterados concretos;
+la reiteración requiere interpretación;
+solo hay indicios vagos de conflicto.
+
+Ejemplos compatibles:
+
+“la golpea desde hace años”;
+“las amenazas son constantes”;
+“sufre agresiones reiteradas”.
+
+Ejemplos NO compatibles:
+
+“tenían problemas desde septiembre”;
+“la relación era mala”;
+“discutían seguido” sin actos de violencia concretos.
 
 10. VIOLENCIA_PSICOLOGICA
 Marcar "true" si hay insultos, humillación, hostigamiento, manipulación, intimidación, desvalorización o maltrato psicológico.
