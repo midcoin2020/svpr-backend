@@ -613,8 +613,8 @@ def obtener_motivos_riesgo(score_total: float, respuestas: list[dict]) -> tuple[
     if es_amenaza_muerte() and es_true("ESCALADA_RECIENTE"):
         motivos_alto.append("Amenazas de muerte en contexto de escalada reciente")
 
-     if es_amenaza_muerte() and es_true("TEMOR_INTENSO_VICTIMA"):
-        motivos_moderado.append("Amenazas de muerte con temor intenso de la víctima")
+    if es_amenaza_muerte() and es_true("TEMOR_INTENSO_VICTIMA"):
+        motivos_alto.append("Amenazas de muerte con temor intenso de la víctima")
 
     if es_true("ACCESO_ARMA_FUEGO") and es_amenaza_muerte() and tiene_indicador_adicional_en_patron_arma_y_amenaza():
         motivos_alto.append(
@@ -645,6 +645,11 @@ def obtener_motivos_riesgo(score_total: float, respuestas: list[dict]) -> tuple[
 
     if es_true("CONSUMO_PROBLEMATICO_AGRESOR") and es_true("VIOLENCIA_FISICA"):
         motivos_moderado.append("Consumo problemático del agresor asociado a violencia física")
+
+    if motivos_moderado:
+        return "moderado", motivos_moderado
+
+    return "bajo", ["Sin indicadores relevantes suficientes en esta valoración preliminar"]
 
 
 def obtener_derivacion_epi(risk_level: str) -> dict:
