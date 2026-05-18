@@ -97,9 +97,24 @@ Marcar "true" si hay empujones, golpes, zamarreos, cachetadas, patadas u otra ag
 Marcar "true" si hay uso intenso de fuerza, lesiones severas, ahorcamiento, sofocación, golpiza, ataque especialmente peligroso o cualquier agresión que denote una violencia física de alta entidad.
 
 3. AMENAZAS_DE_MUERTE
-Marcar "true" si hay amenazas explícitas de muerte o de causar un daño letal grave.
-Incluye expresiones como “te voy a matar”, “te voy a prender fuego”, “te voy a hacer desaparecer” u otras equivalentes.
-No marcar "true" por amenazas ambiguas o genéricas sin contenido letal claro.
+Marcar "true" únicamente si el relato contiene amenazas explícitas, directas o inequívocas de matar a la víctima o provocar su muerte.
+
+Incluye expresiones como:
+
+“te voy a matar”
+“te voy a pegar un tiro”
+“te voy a prender fuego”
+“te voy a hacer desaparecer”
+“te voy a degollar”
+
+o cualquier otra amenaza con contenido letal claro.
+
+NO marcar "true" por:
+
+amenazas ambiguas,
+intimidaciones genéricas,
+frases agresivas sin referencia concreta a matar,
+amenazas de lesiones o daño no letal.
 
 4. USO_ARMA_FUEGO_HECHO:
 Marcar "true" si el relato menciona cualquiera de estas situaciones:
